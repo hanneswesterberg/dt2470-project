@@ -1,0 +1,16 @@
+# Dependencies for the isolated Python 3.9 BeatNet environment.
+# BeatNet and madmom are installed separately by scripts/environments.py because
+# they require special pip build flags.
+setuptools<81
+numpy==1.23.5
+numba==0.57.1
+llvmlite==0.40.1
+Cython<3
+scipy<1.12
+mido
+librosa<0.11
+torch
+matplotlib
+tensorboard
+PyYAML
+PyAudio

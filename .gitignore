@@ -151,6 +151,7 @@ activemq-data/
 .env
 .envrc
 .venv
+.venv-beatnet/
 env/
 venv/
 ENV/
@@ -202,6 +203,15 @@ cython_debug/
 # .vscode/
 # Temporary file for partial code execution
 tempCodeRunnerFile.py
+
+# Local audio, generated predictions, and trained checkpoints
+/input/*
+!/input/.gitkeep
+/output/
+/models/*.pkl
+/models/**/*.pkl
+!/models/.gitkeep
+.DS_Store
 
 # Ruff stuff:
 .ruff_cache/
