@@ -208,8 +208,15 @@ tempCodeRunnerFile.py
 /input/*
 !/input/.gitkeep
 /output/
+/artifacts/
+/.cache/chordrec/
 /models/*.pkl
 /models/**/*.pkl
+/models/hierarchical/*.pt
+/models/hierarchical/split_manifest.json
+!/models/hierarchical/best_model.pt
+!/models/hierarchical/harmonic_model.pkl
+!/models/hierarchical/split_manifest.json
 !/models/.gitkeep
 .DS_Store
 

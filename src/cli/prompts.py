@@ -1,8 +1,8 @@
 """Small dependency-free helpers for reliable interactive terminal questions.
 
 Use these functions in top-level scripts when a user should choose from known
-options. Validation and retry behavior lives here so ``train.py`` and
-``main.py`` can focus on their workflows.
+options. Validation and retry behavior lives here so
+``train_gaussian_baseline.py`` and ``main.py`` can focus on their workflows.
 """
 
 from __future__ import annotations

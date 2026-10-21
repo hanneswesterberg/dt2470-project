@@ -7,7 +7,7 @@ run:
 	python3 main.py
 
 train:
-	python3 train.py
+	python3 train_gaussian_baseline.py
 
 test:
 	python3 setup_env.py

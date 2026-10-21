@@ -1,8 +1,9 @@
-"""Interactive terminal program for training complete or component models.
+"""Train the legacy Gaussian-HMM baseline.
 
-Run ``python3 train.py`` for a guided setup. The wizard asks what to train, how
-many AAM songs to use, and what to name the resulting artifact. Command-line
-flags remain available for repeatable unattended experiments.
+The hierarchical CNN is the repository's default inference model, but its
+historical training loop was not included in the handoff and must not be
+guessed. This script is intentionally retained for reproducible Gaussian
+baseline experiments.
 """
 
 from __future__ import annotations
@@ -31,7 +32,7 @@ from src.training import (
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Train an AAM chord-recognition model."
+        description="Train the legacy Gaussian-HMM baseline."
     )
     parser.add_argument("--target", choices=("full", "emission", "hmm"), default=None)
     parser.add_argument(

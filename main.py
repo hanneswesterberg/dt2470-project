@@ -1,10 +1,7 @@
-"""Interactive terminal program for inference with already-trained models.
+"""Run the default hierarchical CNN/HSMM or legacy Gaussian HMM pipeline.
 
-Run ``python3 main.py`` for a guided selection of local/Drive songs, one or
-more complete model checkpoints, a beat tracker, and optional ground-truth
-comparison. Each run writes CSV timelines and a four-beat-per-bar PNG chart.
-This script never trains models; use ``python3 train.py`` when the required
-checkpoint does not exist.
+The hierarchical CQT72 model is the default. Use ``--pipeline gaussian`` to
+run the original beat-synchronous 24-state model.
 """
 
 from __future__ import annotations
@@ -49,7 +46,16 @@ class InferenceSong:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Run trained chord models on selected songs."
+        description=(
+            "Transcribe songs with the hierarchical CNN/HSMM (default) or "
+            "legacy Gaussian HMM."
+        )
+    )
+    parser.add_argument(
+        "--pipeline",
+        choices=("hierarchical", "gaussian"),
+        default="hierarchical",
+        help="Recognition architecture (default: hierarchical).",
     )
     parser.add_argument("--input-dir", type=Path, default=Path("input"))
     parser.add_argument("--output-dir", type=Path, default=Path("output"))
@@ -58,7 +64,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--model",
         action="append",
         default=None,
-        help="Complete model name/path; repeat the option to compare models.",
+        help="Legacy Gaussian model name/path; repeat to compare Gaussian models.",
     )
     parser.add_argument("--source", choices=("local", "cloud", "both"), default=None)
     parser.add_argument(
@@ -82,6 +88,16 @@ def build_parser() -> argparse.ArgumentParser:
         help="Evaluate and include available annotations in charts.",
     )
     parser.add_argument("--list-models", action="store_true")
+    parser.add_argument("--hierarchical-project-dir", type=Path, default=None)
+    parser.add_argument("--cnn-checkpoint", type=Path, default=None)
+    parser.add_argument("--language-model", type=Path, default=None)
+    parser.add_argument("--split-manifest", type=Path, default=None)
+    parser.add_argument("--cache-dir", type=Path, default=Path(".cache/chordrec"))
+    parser.add_argument(
+        "--device", default=None, help="PyTorch device, e.g. cpu, mps, or cuda."
+    )
+    parser.add_argument("--top-roots", type=int, default=4, choices=range(1, 13))
+    parser.add_argument("--hsmm-order", type=int, default=2, choices=(1, 2))
     parser.add_argument(
         "--non-interactive",
         action="store_true",
@@ -98,7 +114,7 @@ def _print_models(models_dir: Path) -> list[Path]:
             print(f"  {path.stem}")
     else:
         print(f"No complete model checkpoints found in {models_dir}.")
-        print("Train one with: python3 train.py")
+        print("Train one with: python3 train_gaussian_baseline.py")
     return models
 
 
@@ -109,14 +125,16 @@ def _select_models(args: argparse.Namespace, available: list[Path]) -> list[Path
         if missing:
             names = ", ".join(str(path) for path in missing)
             raise FileNotFoundError(
-                f"Model checkpoint(s) not found: {names}. Run python3 train.py."
+                f"Model checkpoint(s) not found: {names}. Run "
+                "python3 train_gaussian_baseline.py."
             )
         return paths
     if args.non_interactive:
         raise ValueError("At least one --model is required with --non-interactive.")
     if not available:
         raise FileNotFoundError(
-            "No complete models are available. Run python3 train.py first."
+            "No complete models are available. Run "
+            "python3 train_gaussian_baseline.py first."
         )
     return ask_many(
         "Which complete model(s) should run?",
@@ -285,19 +303,76 @@ def _select_ground_truth_comparison(
     )
 
 
-def run(args: argparse.Namespace) -> int:
-    available_models = _print_models(args.models_dir)
-    if args.list_models:
-        return 0
+def _run_hierarchical(
+    args: argparse.Namespace,
+    songs: list[InferenceSong],
+    compare_ground_truth: bool,
+) -> int:
+    from src.hierarchical import HierarchicalArtifacts, HierarchicalRecognitionPipeline
 
-    local = find_input_audio(args.input_dir)
-    needs_cloud = not args.non_interactive or args.source in {"cloud", "both"}
-    cloud, cloud_error = _load_cloud_songs(args) if needs_cloud else ({}, None)
-    source = _select_source(args, local, cloud, cloud_error)
-    songs = _select_songs(args, source, local, cloud)
+    artifacts = HierarchicalArtifacts.resolve(
+        project_dir=args.hierarchical_project_dir,
+        cnn_checkpoint=args.cnn_checkpoint,
+        language_model=args.language_model,
+        split_manifest=args.split_manifest,
+    )
+    pipeline = HierarchicalRecognitionPipeline(
+        artifacts,
+        device=args.device,
+        top_roots=args.top_roots,
+        hsmm_order=args.hsmm_order,
+        cache_dir=args.cache_dir,
+    )
+    model_name = "hierarchical_cnn_hsmm"
+    args.output_dir.mkdir(parents=True, exist_ok=True)
+    summary: list[dict[str, object]] = []
+    for song in songs:
+        print(f"\nRunning hierarchical CNN + order-{args.hsmm_order} HSMM: {song.name}")
+        timeline, cache_hit = pipeline.process(song.audio)
+        folder = args.output_dir / model_name
+        csv_path = folder / f"{song.name}_chords.csv"
+        json_path = folder / f"{song.name}_chords.json"
+        timeline.write_csv(csv_path)
+        timeline.write_json(json_path)
+        result: dict[str, object] = {
+            "pipeline": "hierarchical",
+            "model": model_name,
+            "song": song.name,
+            "audio": str(song.audio),
+            "prediction_csv": str(csv_path),
+            "prediction_json": str(json_path),
+            "intervals": len(timeline.labels),
+            "posterior_cache_hit": cache_hit,
+            "cnn_checkpoint": str(artifacts.cnn_checkpoint),
+            "language_model": str(artifacts.language_model),
+            "hsmm_order": args.hsmm_order,
+            "top_roots": args.top_roots,
+        }
+        if compare_ground_truth and song.annotations is not None:
+            # The old evaluator collapses annotations to 24 major/minor states.
+            # Do not publish misleading RQS metrics through that interface.
+            result["ground_truth"] = str(song.annotations)
+            result["metrics"] = "not_scored: reference requires RQS label conversion"
+            print(
+                "  Ground truth found; legacy 24-state scoring skipped for this RQS model."
+            )
+        print(f"  wrote {csv_path}")
+        print(f"  wrote {json_path}")
+        summary.append(result)
+    summary_path = args.output_dir / "summary.json"
+    summary_path.write_text(json.dumps(summary, indent=2), encoding="utf-8")
+    print(f"\nFinished {len(songs)} song(s) with the hierarchical model.")
+    print(f"Summary: {summary_path}")
+    return 0
+
+
+def _run_gaussian(
+    args: argparse.Namespace,
+    songs: list[InferenceSong],
+    compare_ground_truth: bool,
+    available_models: list[Path],
+) -> int:
     model_paths = _select_models(args, available_models)
-    compare_ground_truth = _select_ground_truth_comparison(args, songs)
-
     tracker_name = args.beat_tracker
     if tracker_name is None:
         if args.non_interactive:
@@ -319,7 +394,7 @@ def run(args: argparse.Namespace) -> int:
     summary: list[dict[str, object]] = []
 
     for song in songs:
-        print(f"\nPreparing audio once: {song.name}")
+        print(f"\nPreparing legacy beat-synchronous audio once: {song.name}")
         prepared = prepare_audio(song.audio, tracker, extractor)
         reference: ChordTimeline | None = None
         if compare_ground_truth and song.annotations is not None:
@@ -330,12 +405,13 @@ def run(args: argparse.Namespace) -> int:
         predictions: dict[str, ChordTimeline] = {}
         song_results: list[dict[str, object]] = []
         for model_name, model in models:
-            print(f"  Running model: {model_name}")
+            print(f"  Running legacy Gaussian model: {model_name}")
             timeline = prepared.predict(model)
             predictions[model_name] = timeline
             output_path = args.output_dir / model_name / f"{song.name}_chords.csv"
             timeline.write_csv(output_path)
             result: dict[str, object] = {
+                "pipeline": "gaussian",
                 "model": model_name,
                 "song": song.name,
                 "audio": str(song.audio),
@@ -375,9 +451,35 @@ def run(args: argparse.Namespace) -> int:
 
     summary_path = args.output_dir / "summary.json"
     summary_path.write_text(json.dumps(summary, indent=2), encoding="utf-8")
-    print(f"\nFinished {len(songs)} song(s) with {len(models)} model(s).")
+    print(f"\nFinished {len(songs)} song(s) with {len(models)} Gaussian model(s).")
     print(f"Summary: {summary_path}")
     return 0
+
+
+def run(args: argparse.Namespace) -> int:
+    available_models = (
+        _print_models(args.models_dir)
+        if args.pipeline == "gaussian" or args.list_models
+        else []
+    )
+    if args.list_models:
+        return 0
+    if args.pipeline == "hierarchical" and args.model:
+        raise ValueError("--model selects legacy checkpoints; use --pipeline gaussian.")
+    if args.pipeline == "hierarchical" and args.beat_tracker:
+        raise ValueError(
+            "--beat-tracker only applies to the legacy Gaussian pipeline."
+        )
+
+    local = find_input_audio(args.input_dir)
+    needs_cloud = not args.non_interactive or args.source in {"cloud", "both"}
+    cloud, cloud_error = _load_cloud_songs(args) if needs_cloud else ({}, None)
+    source = _select_source(args, local, cloud, cloud_error)
+    songs = _select_songs(args, source, local, cloud)
+    compare_ground_truth = _select_ground_truth_comparison(args, songs)
+    if args.pipeline == "hierarchical":
+        return _run_hierarchical(args, songs, compare_ground_truth)
+    return _run_gaussian(args, songs, compare_ground_truth, available_models)
 
 
 def main() -> int:

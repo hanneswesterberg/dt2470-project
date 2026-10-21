@@ -1,8 +1,8 @@
 """Resolve and discover named model checkpoints in the local model registry.
 
-Both ``train.py`` and ``main.py`` use these helpers so a model name always maps
-to the same file. Plain names live under ``models/``; explicit relative or
-absolute paths remain supported for advanced workflows.
+Both ``train_gaussian_baseline.py`` and ``main.py`` use these helpers so a
+baseline model name always maps to the same file. Plain names live under
+``models/``; explicit relative or absolute paths remain supported.
 
 Example::
 

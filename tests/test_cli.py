@@ -6,7 +6,7 @@ from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 from data.load_data import SongFiles
-from main import _parse_cloud_request
+from main import _parse_cloud_request, build_parser
 from src.cli import ask_choice, ask_many
 from src.models import component_path
 
@@ -24,6 +24,12 @@ class PromptTests(unittest.TestCase):
 
 
 class ScriptSelectionTests(unittest.TestCase):
+    def test_hierarchical_pipeline_is_the_cli_default(self) -> None:
+        args = build_parser().parse_args([])
+        self.assertEqual(args.pipeline, "hierarchical")
+        self.assertEqual(args.hsmm_order, 2)
+        self.assertEqual(args.top_roots, 4)
+
     def test_cloud_ids_and_random_selection(self) -> None:
         with TemporaryDirectory() as directory:
             root = Path(directory)

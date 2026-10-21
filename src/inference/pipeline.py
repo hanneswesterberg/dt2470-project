@@ -12,6 +12,7 @@ and fitted model without embedding their algorithms here::
 from __future__ import annotations
 
 import csv
+import json
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -41,6 +42,21 @@ class ChordTimeline:
                 (f"{start:.6f}", f"{end:.6f}", label)
                 for start, end, label in zip(self.starts, self.ends, self.labels)
             )
+
+    def write_json(self, path: Path | str) -> None:
+        """Write the same event timeline as a machine-readable JSON array."""
+
+        target = Path(path)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        events = [
+            {
+                "start_seconds": float(start),
+                "end_seconds": float(end),
+                "chord": str(label),
+            }
+            for start, end, label in zip(self.starts, self.ends, self.labels)
+        ]
+        target.write_text(json.dumps(events, indent=2), encoding="utf-8")
 
 
 @dataclass(frozen=True)
