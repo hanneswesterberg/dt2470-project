@@ -1,4 +1,4 @@
-"""Tests for the PNG chord-chart output produced after inference."""
+"""Tests for static and interactive inference visualizations."""
 
 import unittest
 from pathlib import Path
@@ -7,7 +7,7 @@ from tempfile import TemporaryDirectory
 import numpy as np
 
 from src.inference import ChordTimeline
-from src.visualization import write_chord_chart
+from src.visualization import write_chord_chart, write_interactive_viewer
 
 
 def _timeline(labels: list[str], offset: float = 0.0) -> ChordTimeline:
@@ -46,6 +46,43 @@ class ChordChartTests(unittest.TestCase):
             self.assertRaisesRegex(ValueError, "At least one prediction"),
         ):
             write_chord_chart("song", {}, Path(directory) / "song.png")
+
+
+class InteractiveViewerTests(unittest.TestCase):
+    def test_writes_audio_player_with_synchronized_events(self) -> None:
+        prediction = _timeline(["Cmaj7", "Am7", "Fmaj7", "G7"])
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            audio = root / "input" / "demo song.wav"
+            audio.parent.mkdir()
+            audio.touch()
+            target = root / "output" / "demo_viewer.html"
+
+            returned = write_interactive_viewer(
+                "Demo song",
+                audio,
+                prediction,
+                target,
+                model_name="Hierarchical CNN + HSMM",
+            )
+            document = target.read_text(encoding="utf-8")
+
+            self.assertEqual(returned, target)
+            self.assertIn("<audio", document)
+            self.assertIn("../input/demo%20song.wav", document)
+            self.assertIn('"chord": "Cmaj7"', document)
+            self.assertIn("Live chord transcription", document)
+
+    def test_rejects_an_empty_timeline(self) -> None:
+        empty = ChordTimeline(np.asarray([]), np.asarray([]), np.asarray([]))
+        with (
+            TemporaryDirectory() as directory,
+            self.assertRaisesRegex(ValueError, "empty timeline"),
+        ):
+            root = Path(directory)
+            write_interactive_viewer(
+                "Empty", root / "audio.wav", empty, root / "viewer.html", model_name="test"
+            )
 
 
 if __name__ == "__main__":

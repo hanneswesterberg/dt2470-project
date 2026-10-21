@@ -32,7 +32,7 @@ from src.evaluation import evaluate_timeline
 from src.features import CQTChromaExtractor
 from src.inference import ChordTimeline, prepare_audio
 from src.models import ChordRecognitionModel, list_models, resolve_model_path
-from src.visualization import write_chord_chart
+from src.visualization import write_chord_chart, write_interactive_viewer
 
 
 @dataclass(frozen=True)
@@ -332,8 +332,16 @@ def _run_hierarchical(
         folder = args.output_dir / model_name
         csv_path = folder / f"{song.name}_chords.csv"
         json_path = folder / f"{song.name}_chords.json"
+        viewer_path = args.output_dir / f"{song.name}_viewer.html"
         timeline.write_csv(csv_path)
         timeline.write_json(json_path)
+        write_interactive_viewer(
+            song.name,
+            song.audio,
+            timeline,
+            viewer_path,
+            model_name="Hierarchical CNN + second-order HSMM",
+        )
         result: dict[str, object] = {
             "pipeline": "hierarchical",
             "model": model_name,
@@ -341,6 +349,7 @@ def _run_hierarchical(
             "audio": str(song.audio),
             "prediction_csv": str(csv_path),
             "prediction_json": str(json_path),
+            "viewer": str(viewer_path),
             "intervals": len(timeline.labels),
             "posterior_cache_hit": cache_hit,
             "cnn_checkpoint": str(artifacts.cnn_checkpoint),
@@ -358,6 +367,7 @@ def _run_hierarchical(
             )
         print(f"  wrote {csv_path}")
         print(f"  wrote {json_path}")
+        print(f"  open {viewer_path} to listen with live chords")
         summary.append(result)
     summary_path = args.output_dir / "summary.json"
     summary_path.write_text(json.dumps(summary, indent=2), encoding="utf-8")
@@ -409,13 +419,24 @@ def _run_gaussian(
             timeline = prepared.predict(model)
             predictions[model_name] = timeline
             output_path = args.output_dir / model_name / f"{song.name}_chords.csv"
+            viewer_path = (
+                args.output_dir / f"{song.name}_{model_name}_viewer.html"
+            )
             timeline.write_csv(output_path)
+            write_interactive_viewer(
+                song.name,
+                song.audio,
+                timeline,
+                viewer_path,
+                model_name=f"Gaussian-HMM baseline · {model_name}",
+            )
             result: dict[str, object] = {
                 "pipeline": "gaussian",
                 "model": model_name,
                 "song": song.name,
                 "audio": str(song.audio),
                 "prediction": str(output_path),
+                "viewer": str(viewer_path),
                 "intervals": len(timeline.labels),
             }
             if reference is not None:
@@ -436,6 +457,7 @@ def _run_gaussian(
             elif compare_ground_truth:
                 print("    no ground truth; comparison skipped")
             print(f"    wrote {output_path}")
+            print(f"    open {viewer_path} to listen with live chords")
             song_results.append(result)
 
         chart_path = write_chord_chart(

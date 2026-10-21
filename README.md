@@ -67,14 +67,16 @@ The default pipeline writes:
 
 ```text
 output/
+├── <song>_viewer.html
 ├── hierarchical_cnn_hsmm/
 │   ├── <song>_chords.csv
 │   └── <song>_chords.json
 └── summary.json
 ```
 
-Each event contains a start time, end time, and chord label. Generated output
-is ignored by Git.
+Open `<song>_viewer.html` in a browser to hear the audio with a synchronized
+chord display and clickable timeline. The CSV and JSON files contain the same
+events as structured data. Generated output is ignored by Git.
 
 ## How the system works
 
@@ -219,7 +221,7 @@ dt2470-project/
 │   ├── models/                     Gaussian baseline model serialization
 │   ├── inference/                  Shared timelines and baseline pipeline
 │   ├── evaluation/                 Timeline evaluation utilities
-│   ├── visualization/              Chord-chart generation
+│   ├── visualization/              Interactive player and chord charts
 │   └── beat_net/                   Optional BeatNet integration
 │
 ├── data/                           Audio discovery and AAM annotations

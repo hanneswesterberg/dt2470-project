@@ -6,5 +6,6 @@ against a ground-truth timeline.
 """
 
 from src.visualization.chord_chart import write_chord_chart
+from src.visualization.interactive_viewer import write_interactive_viewer
 
-__all__ = ["write_chord_chart"]
+__all__ = ["write_chord_chart", "write_interactive_viewer"]
