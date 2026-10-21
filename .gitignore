@@ -214,6 +214,7 @@ tempCodeRunnerFile.py
 /models/**/*.pkl
 /models/hierarchical/*.pt
 /models/hierarchical/split_manifest.json
+/models/training_runs/
 !/models/hierarchical/best_model.pt
 !/models/hierarchical/harmonic_model.pkl
 !/models/hierarchical/split_manifest.json

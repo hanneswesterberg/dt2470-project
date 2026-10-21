@@ -1,13 +1,22 @@
-.PHONY: setup run train test
+.PHONY: setup run train train-cnn train-gaussian evaluate test
 
 setup:
 	python3 setup_env.py --with-beatnet
 
 run:
-	python3 main.py
+	.venv/bin/python main.py
 
 train:
-	python3 train_gaussian_baseline.py
+	.venv/bin/python train_hierarchical_cnn.py
+
+train-cnn:
+	.venv/bin/python train_hierarchical_cnn.py
+
+train-gaussian:
+	.venv/bin/python train_gaussian_baseline.py
+
+evaluate:
+	.venv/bin/python evaluate_hierarchical.py
 
 test:
 	python3 setup_env.py

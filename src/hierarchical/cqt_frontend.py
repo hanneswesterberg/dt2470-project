@@ -1,4 +1,4 @@
-"""CQT72 continuous-audio frontend matching the Colab prototype."""
+"""CQT72 continuous-audio frontend used by the hierarchical model."""
 
 from __future__ import annotations
 

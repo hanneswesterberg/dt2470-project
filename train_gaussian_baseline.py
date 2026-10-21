@@ -1,10 +1,4 @@
-"""Train the legacy Gaussian-HMM baseline.
-
-The hierarchical CNN is the repository's default inference model, but its
-historical training loop was not included in the handoff and must not be
-guessed. This script is intentionally retained for reproducible Gaussian
-baseline experiments.
-"""
+"""Train the Gaussian-HMM comparison model."""
 
 from __future__ import annotations
 
@@ -32,7 +26,7 @@ from src.training import (
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Train the legacy Gaussian-HMM baseline."
+        description="Train the Gaussian-HMM comparison model."
     )
     parser.add_argument("--target", choices=("full", "emission", "hmm"), default=None)
     parser.add_argument(

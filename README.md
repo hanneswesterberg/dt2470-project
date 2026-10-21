@@ -1,327 +1,219 @@
-# Automatic Chord Recognition with a Hierarchical CNN and HSMM
+# DT2470 chord recognition
 
-This repository is the DT2470 group project for recognizing chords directly
-from audio. The main system uses a hierarchical convolutional neural network
-(CNN) to estimate chord roots, qualities, and sevenths, followed by a
-second-order hidden semi-Markov model (HSMM) that produces a stable timeline of
-chord events.
+This is our group project for DT2470. It estimates chords from an audio file and writes a timestamped chord sequence.
 
-The repository also retains our earlier Gaussian-HMM system as an optional
-baseline. The hierarchical CNN and HSMM are the default implementation.
+The default system is a hierarchical CNN followed by a second-order HSMM. An optional Gaussian HMM pipeline is included for comparison.
 
-## Quick start
+## Run it
 
-### 1. Prepare the environment
-
-Python 3.10 or newer is recommended. From the repository root, run:
+Set up the Python environment:
 
 ```bash
 python3 setup_env.py
 ```
 
-This creates `.venv`, installs the required packages, and keeps dependencies
-isolated from the rest of the computer.
-
-### 2. Run chord recognition
-
-Several local songs can be selected through the interactive interface:
+Put an MP3, WAV, FLAC, or OGG file in `input/`, then run:
 
 ```bash
-python3 main.py
+.venv/bin/python main.py
 ```
 
-The program lists the audio files in `input/`. Enter a number, a range such as
-`1,3-5`, or `all`.
-
-To run a specific local file without the interactive questions:
-
-```bash
-python3 main.py \
-  --non-interactive \
-  --source local \
-  --song hey_jude.mp3
-```
-
-The hierarchical system is the default. It can also be selected explicitly:
-
-```bash
-python3 main.py \
-  --pipeline hierarchical \
-  --source local \
-  --top-roots 4 \
-  --hsmm-order 2
-```
-
-Useful options:
-
-- `--top-roots 4` evaluates the four most likely CNN root candidates. Use
-  `--top-roots 12` for exhaustive root enumeration.
-- `--hsmm-order 2` uses the default second-order harmonic model. Use `1` for
-  the first-order comparison.
-- `--device cpu`, `--device mps`, or `--device cuda` selects the PyTorch device.
-- `--cache-dir PATH` changes where continuous CNN predictions are cached.
-
-### 3. Find the results
-
-The default pipeline writes:
+Choose a song from the list. The results are written to `output/`:
 
 ```text
 output/
 ├── <song>_viewer.html
+├── media/                              Browser-compatible audio when needed
 ├── hierarchical_cnn_hsmm/
 │   ├── <song>_chords.csv
 │   └── <song>_chords.json
 └── summary.json
 ```
 
-Open `<song>_viewer.html` in a browser to hear the audio with a synchronized
-chord display and clickable timeline. The CSV and JSON files contain the same
-events as structured data. Generated output is ignored by Git.
+Open `<song>_viewer.html` in a browser to listen to the song while following the predicted chords. The chord blocks can also be clicked to seek in the audio.
 
-## How the system works
+A specific song can be run without the menu:
 
-The complete inference path is:
-
-```text
-Audio
-  ↓ mono, 22,050 Hz and harmonic separation
-Continuous CQT
-  ↓ 216 frequency bins grouped into 72 features
-Overlapping 72 × 32 windows
-  ↓ one observation every 200 ms
-Hierarchical CNN
-  ├── P(root | audio)                         12 roots
-  ├── P(quality | root, audio)                 6 qualities
-  └── P(seventh | root, quality, audio)        4 seventh classes
-  ↓ joint posterior over 12 × 6 × 4 = 288 chord states
-Second-order HSMM
-  ├── CNN acoustic evidence
-  ├── duration probabilities
-  └── transitions conditioned on two previous chord events
-  ↓
-Timestamped chord timeline
+```bash
+.venv/bin/python main.py --non-interactive --source local --song example.mp3
 ```
 
-### CQT72 audio frontend
+The main options are:
 
-Implementation: `src/hierarchical/cqt_frontend.py`
+- `--pipeline hierarchical` or `--pipeline gaussian`
+- `--device cpu`, `--device mps`, or `--device cuda`
+- `--hsmm-order 1` or `--hsmm-order 2`
+- `--top-roots 4` controls how many root candidates are passed from the CNN to the HSMM
 
-Audio is loaded as mono at 22,050 Hz and separated with harmonic-percussive
-source separation. A constant-Q transform is calculated with 36 bins per
-octave and 216 total bins beginning at C1. Groups of three adjacent bins are
-summed to create 72 frequency features.
-
-The continuous representation is sampled every 200 ms. Each CNN observation
-contains 32 interpolated CQT frames, giving the network approximately 0.74
-seconds of context. Square-root compression and per-frame normalization match
-the preprocessing used by the supplied checkpoint.
-
-### Hierarchical CNN
-
-Implementation: `src/hierarchical/hierarchical_cnn.py`
-
-The CNN is not a flat 288-class classifier. It represents a chord as three
-dependent decisions:
-
-```text
-root → quality conditioned on root → seventh conditioned on root and quality
-```
-
-The root head predicts one of 12 pitch classes. For every candidate root, the
-72 CQT features are rotated into a root-relative representation. A second
-encoder then predicts one of these qualities:
-
-```text
-major, minor, diminished, augmented, suspended 2, suspended 4
-```
-
-The seventh head predicts:
-
-```text
-none, flat seventh, major seventh, diminished seventh
-```
-
-During inference, the system combines the conditional probabilities:
-
-```text
-P(root, quality, seventh | audio)
-  = P(root | audio)
-  × P(quality | root, audio)
-  × P(seventh | root, quality, audio)
-```
-
-This preserves alternative chord candidates for the temporal decoder instead
-of greedily choosing each head independently. The checkpoint also contains an
-extension head, but extensions are not decoded because the available extension
-training labels were too imbalanced.
-
-### Harmonic language model and HSMM
-
-Implementation: `src/hierarchical/hsmm_decoder.py`
-
-The CNN produces an observation every 200 ms, but chords normally persist over
-several observations. The HSMM jointly decides chord identities and event
-boundaries.
-
-Each candidate segment is scored using:
-
-- accumulated CNN evidence across the segment;
-- a learned chord-duration distribution; and
-- a transposition-invariant harmonic transition probability.
-
-The second-order model considers the two previous chord events when scoring a
-new event. Transitions are expressed as relative root movements, allowing a
-progression learned in one key to apply in another key.
-
-Decoding uses beam-pruned segmental Viterbi. It is an approximate decoder: a
-beam retains the strongest hypotheses, and only the most acoustically likely
-states are expanded for each segment. The default parameters reproduce the
-settings documented by the research notebook.
-
-### End-to-end inference and caching
-
-Implementation: `src/hierarchical/inference_pipeline.py`
-
-This module connects the frontend, CNN, and HSMM. Continuous CNN posteriors are
-cached under `.cache/chordrec/` because CQT extraction and CNN inference are the
-expensive parts of the pipeline.
-
-Cache keys include the audio hash, CNN checkpoint hash, frontend configuration,
-root-pruning setting, and pipeline version. A cached prediction is therefore
-not accidentally reused after changing the audio or model.
-
-## Repository guide
+## Repository structure
 
 ```text
 dt2470-project/
-├── main.py                         Main inference command
-├── setup_env.py                    Creates and updates local environments
-├── train_gaussian_baseline.py      Trains the earlier Gaussian-HMM baseline
-├── requirements.txt                Main Python dependencies
-├── requirements-beatnet.txt        Isolated legacy BeatNet dependencies
+├── main.py                         Runs inference
+├── train_hierarchical_cnn.py       Trains the CNN
+├── train_gaussian_baseline.py      Trains the Gaussian baseline
+├── setup_env.py                    Creates the local Python environment
+├── requirements.txt
 │
 ├── models/
-│   ├── hierarchical/               CNN, harmonic model, and split manifest
-│   └── gaussian_hmm_10.pkl         Example Gaussian baseline
+│   ├── hierarchical/               CNN checkpoint, HSMM model, and data split
+│   └── gaussian_hmm_10.pkl         Gaussian baseline checkpoint
 │
-├── input/                          Local audio supplied to main.py
-├── output/                         Generated timelines and charts
+├── input/                          Audio used for inference
+├── output/                         Generated results and HTML viewers
+├── data/                           Data loading and annotation code
+├── tests/                          Unit and integration tests
 │
 ├── src/
 │   ├── hierarchical/
-│   │   ├── cqt_frontend.py         Audio → rolling CQT72 windows
-│   │   ├── hierarchical_cnn.py     CNN architecture and joint probabilities
-│   │   ├── hsmm_decoder.py         Harmonic model and segmental Viterbi
-│   │   ├── inference_pipeline.py   End-to-end inference and caching
-│   │   ├── vocabulary.py           288-state chord representation
-│   │   └── artifacts.py            Model artifact discovery and validation
-│   │
-│   ├── features/                   Gaussian baseline features
-│   ├── hmm/                        Gaussian emissions and HMM decoding
-│   ├── models/                     Gaussian baseline model serialization
-│   ├── inference/                  Shared timelines and baseline pipeline
-│   ├── evaluation/                 Timeline evaluation utilities
-│   ├── visualization/              Interactive player and chord charts
-│   └── beat_net/                   Optional BeatNet integration
+│   │   ├── cqt_frontend.py         Audio preprocessing and CQT windows
+│   │   ├── hierarchical_cnn.py     CNN architecture
+│   │   ├── hsmm_decoder.py         HSMM and Viterbi decoding
+│   │   ├── inference_pipeline.py   Complete CNN + HSMM pipeline
+│   │   ├── vocabulary.py           Chord labels and state indices
+│   │   └── artifacts.py            Model loading and validation
+│   ├── features/                   Features for the Gaussian baseline
+│   ├── hmm/                        Baseline HMM and Viterbi code
+│   ├── models/                     Baseline Gaussian model code
+│   ├── inference/                  Shared inference helpers
+│   ├── evaluation/                 Evaluation code
+│   └── visualization/              Plots and the interactive viewer
 │
-├── data/                           Audio discovery and AAM annotations
-├── tests/                          Unit and integration tests
 └── notebooks/
-    ├── chord_recognition_architecture_handoff.ipynb
+    ├── architecture_notes.ipynb
     └── TinyAAM_BeatNet_Gaussian_HMM_Full_Pipeline.ipynb
 ```
 
-The hierarchical package is the main implementation. The older modules under
-`src/features`, `src/hmm`, and `src/models` support the Gaussian baseline and
-are retained for comparison with the final architecture.
+The files under `src/hierarchical/` contain the default system. The files under `src/features/`, `src/hmm/`, and `src/models/` support the optional Gaussian comparison model.
 
-## Model files
+## Architecture
 
-The default inference artifacts live in `models/hierarchical/`:
+### Musical view
+
+The CNN looks at the sound of a short time window and describes the chord it hears. It is trained with four musical targets:
 
 ```text
-best_model.pt          Hierarchical CNN parameters and vocabulary
-harmonic_model.pkl     Transition counts, priors, and duration samples
-split_manifest.json    Fixed 70/15/15 RWC train/validation/test split
+root + quality + seventh + extensions
 ```
 
-These files are sufficient for local inference; Google Drive access is not
-required. PyTorch and pickle files should only be loaded from trusted sources.
+For example, a label can be understood as a root such as C, a quality such as major or minor, a seventh such as major seventh, and any additional chord tones such as a ninth. The targets are predicted hierarchically: the root is predicted first, then the quality relative to that root, followed by the seventh and extensions. This reflects how musicians name chords and lets the same quality pattern be recognized in different keys.
 
-The chord vocabulary contains 12 roots, six qualities, and four seventh
-classes, giving 288 states. Chord extensions and inversions are not part of the
-default decoder, and the system currently has no explicit no-chord state.
+The current HSMM state space contains root, quality, and seventh (12 x 6 x 4 = 288 states). The extension head is trained and its probabilities are available from the CNN, but extensions are not yet part of the decoded chord names or the HSMM state space.
 
-## Data and training
+### 1. Audio and CQT features
 
-Large training datasets and copyrighted recordings are not required for
-inference and should not be committed to the repository. Users can place their
-own MP3, WAV, FLAC, or OGG files in `input/`.
+`src/hierarchical/cqt_frontend.py` loads the audio as mono at 22,050 Hz and extracts its harmonic part. It then calculates a constant-Q transform with 216 bins and combines every three adjacent bins, producing 72 frequency features.
 
-The supplied CNN and harmonic model use the fixed seed-42 RWC split:
+The CNN receives windows with shape `72 x 32`. A window is produced every 200 ms and covers about 0.74 seconds of audio.
 
-- 70 training songs;
-- 15 validation songs; and
-- 15 held-out test songs.
+### 2. Hierarchical CNN
 
-The research handoff did not contain the original authoritative CNN training
-loop. This repository therefore provides reproducible inference from the saved
-checkpoint without claiming that the training experiment can be recreated
-exactly. The harmonic transition model must be trained on sequential song
-annotations, not isolated-chord datasets.
+`src/hierarchical/hierarchical_cnn.py` predicts a chord in three steps:
 
-`train_gaussian_baseline.py` only trains the earlier Gaussian-HMM baseline:
-
-```bash
-python3 train_gaussian_baseline.py
+```text
+root -> quality given the root -> seventh given the root and quality
 ```
 
-## Gaussian-HMM baseline
+There are 12 roots, 6 qualities, and 4 seventh classes. This gives 288 possible root-quality-seventh chords. Before predicting quality, the CQT is rotated relative to each possible root. This lets the quality part of the network learn the same chord shape in every key.
 
-The baseline recognizes 24 major/minor states using beat-synchronous chroma,
-Gaussian emissions, a relative first-order transition model, and ordinary
-Viterbi decoding.
+The model also has an extension head. It is trained from multi-hot extension labels, so a chord can have more than one extension at the same time. The current inference output does not include those extensions yet because the decoder uses the 288-state root-quality-seventh vocabulary.
 
-Run it with:
+### 3. HSMM and Viterbi decoding
 
-```bash
-python3 main.py \
-  --pipeline gaussian \
-  --non-interactive \
-  --model gaussian_hmm_10 \
-  --source local
+The CNN makes a prediction every 200 ms. These frame-level predictions change too often to be used directly as chord events.
+
+`src/hierarchical/hsmm_decoder.py` uses a hidden semi-Markov model to choose the chord sequence and its boundaries. It receives the rolling sequence of CNN emission probabilities. For every possible chord segment, it sums the emission evidence over the frames in that segment, then combines it with:
+
+- learned chord durations; and
+- harmonic transition probabilities.
+
+The default second-order model remembers the two previous chord events. Musically, its transition model mainly learns the movement of the root in semitones, together with the quality and seventh of the new chord. For example, it can learn that a dominant-seventh chord often moves down a fifth to a new root, or that a minor chord tends to follow a particular relative root movement. The model stores root movements relative to the previous root, so the same progression can be used in different keys. It also learns how long chords normally last.
+
+The HSMM therefore smooths the frame-level CNN predictions into musical events: it chooses a chord, decides when that chord ends, checks the likely duration, and scores the transition from the previous two chords. Decoding is done with segmental Viterbi and beam pruning.
+
+### 4. Output
+
+`src/hierarchical/inference_pipeline.py` connects preprocessing, the CNN, and the HSMM. CNN predictions are cached in `.cache/chordrec/` so changing the decoder does not require recalculating the CQT and CNN output.
+
+`src/visualization/interactive_viewer.py` creates the HTML player in `output/`.
+
+## Models and data
+
+The files needed for inference are already in `models/hierarchical/`:
+
+```text
+best_model.pt          CNN weights and chord vocabulary
+harmonic_model.pkl     Transition and duration model for the HSMM
+split_manifest.json    Fixed 70/15/15 train, validation, and test split
 ```
 
-BeatNet has an older dependency stack and therefore uses a separate Python 3.9
-environment. Prepare it only when needed:
+Running inference does not require Google Drive access. The large training feature files and the original audio dataset are not stored in Git. This keeps the repository small and avoids distributing copyrighted audio.
+
+## Training the CNN
+
+The CNN training implementation is `train_hierarchical_cnn.py`. It uses the CNN implementation from `src/hierarchical/hierarchical_cnn.py`, so training and inference do not have separate copies of the architecture.
+
+The script expects one cached feature file per song:
+
+```text
+data/features_cqt72_v1/RWC_P001.npz
+data/features_cqt72_v1/RWC_P002.npz
+...
+```
+
+Each file must contain `X`, `root`, `quality`, `seventh`, and multi-hot extension targets. `X` must have shape `(N, 72, 32)`. Run training with:
 
 ```bash
-python3 setup_env.py --with-beatnet
+.venv/bin/python train_hierarchical_cnn.py \
+  --feature-dir /path/to/features_cqt72_v1
+```
+
+The script uses the split in `models/hierarchical/split_manifest.json` and only loads the training and validation songs. New checkpoints and training logs are written to `models/training_runs/hierarchical_cnn/`, which is ignored by Git.
+
+The training settings are defined in the script and can be changed with its command-line options.
+
+The script automatically looks for an extension target key named `extensions`, `extension`, `ext`, `extension_targets`, or `ext_targets`. If the data uses another key, pass it explicitly:
+
+```bash
+.venv/bin/python train_hierarchical_cnn.py \
+  --feature-dir /path/to/features_cqt72_v1 \
+  --extension-key extensions
+```
+
+The Gaussian baseline can be trained separately:
+
+```bash
+.venv/bin/python train_gaussian_baseline.py
 ```
 
 ## Tests
 
-Run the complete test suite with:
+Run all tests with:
 
 ```bash
-python3 -m unittest discover -s tests -v
+.venv/bin/python -m unittest discover -s tests -v
 ```
 
-The tests cover the hierarchical vocabulary and CQT windows, model artifact
-handling, timeline export, Gaussian components, evaluation, CLI parsing, and
-visualization. The real hierarchical checkpoint is also validated to load
-strictly with all saved parameter entries.
+The architecture notes are in `notebooks/architecture_notes.ipynb`.
 
-## Research notebook and reported validation
+## Evaluating against annotations
 
-The technical handoff notebook is located at:
+For a larger experiment, use `evaluate_hierarchical.py` instead of selecting songs one at a time. It finds matching audio and `*_beatinfo.arff` annotation files, runs the hierarchical CNN/HSMM on every pair, and writes one result per song plus aggregate averages.
+
+The evaluator compares the predicted root and major/minor quality against the existing AAM annotations. Seventh and extension labels are kept in the model output, but the current AAM evaluator does not score them because the annotation parser exposes the older triad labels.
+
+```bash
+.venv/bin/python evaluate_hierarchical.py \
+  --audio-dir /path/to/audio \
+  --annotation-dir /path/to/annotations
+```
+
+Results are written to `output/evaluation/`:
 
 ```text
-notebooks/chord_recognition_architecture_handoff.ipynb
+results.json       Full per-song results
+results.csv        One row per song
+aggregate.json     Mean accuracy, coverage, and beat metrics
 ```
 
-It documents the architecture, preprocessing assumptions, validation protocol,
-and limitations in more detail. The reported continuous-audio validation result
-for the second-order system is 65.45% full root-quality-seventh accuracy with a
-boundary F1 of 0.852. These are development/validation results, not an
-untouched-test or standardized MIREX benchmark.
+The evaluator uses the same cache as normal inference. The first run extracts the audio features and CNN emissions; later runs can reuse them. Use `--limit 10` for a quick check before starting a full collection run.
