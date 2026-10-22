@@ -8,7 +8,7 @@
     "prediction_json": "output/hierarchical_cnn_hsmm/beatles_something_chords.json",
     "viewer": "output/beatles_something_viewer.html",
     "intervals": 97,
-    "posterior_cache_hit": false,
+    "posterior_cache_hit": true,
     "cnn_checkpoint": "models/best_model.pt",
     "language_model": "models/harmonic_model.pkl",
     "hsmm_order": 2,
