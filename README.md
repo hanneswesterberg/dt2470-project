@@ -244,3 +244,15 @@ aggregate.json     Mean accuracy, coverage, and beat metrics
 ```
 
 The evaluator uses the same cache as normal inference. The first run extracts the audio features and CNN emissions; later runs can reuse them. Use `--limit 10` for a quick check before starting a full collection run.
+
+## Notebook
+
+[`notebooks/Chord_Recognition_Workbench.ipynb`](notebooks/Chord_Recognition_Workbench.ipynb)
+provides an interactive frontend for local audio inference, prediction
+inspection, optional model training, annotated-dataset evaluation, and the RWC
+feature-level CNN benchmark. It calls the same modules and workflows as the
+command-line tools; it does not duplicate the model implementation. Set up the
+project environment with `python3 setup_env.py`, select that environment as the
+notebook kernel, and place local audio files in `input/`. Training and
+full-dataset evaluation are disabled by default and require the corresponding
+external datasets.
