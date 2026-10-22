@@ -25,7 +25,9 @@ The notebook reproduces both reported evaluations:
 It then runs inference on the selected example and embeds the synchronized
 audio/chord player directly in the notebook. The generated player contains only
 audio controls, current/previous/next chords, and six rolling chord cards.
-Available ground truth is displayed beside the prediction.
+Available ground truth is displayed beside the prediction. `RWC_P039`, the
+best-performing complete-chord example in the 15-song test set, is bundled as a
+lossless FLAC file and selected by default.
 
 The project and generated results live in the runtime's temporary directory and
 may disappear when the runtime ends. CPU execution is supported; an available
