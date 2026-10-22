@@ -66,8 +66,19 @@ def load_annotations(path: Path | str) -> ChordAnnotations:
     ignored by the 24-class training/evaluation code.
     """
 
+    path = Path(path)
+    if path.suffix.lower() == ".csv":
+        rows = []
+        with path.open(newline="", encoding="utf-8-sig") as handle:
+            for row in csv.DictReader(handle, delimiter=";"):
+                try:
+                    rows.append((float(row["t_start"]), row["chord"]))
+                except (KeyError, TypeError, ValueError):
+                    continue
+    else:
+        rows = read_arff_beatinfo(path)
     by_time: dict[float, list[str]] = {}
-    for timestamp, label in read_arff_beatinfo(path):
+    for timestamp, label in rows:
         by_time.setdefault(round(timestamp, 6), []).append(normalize_chord(label))
     cleaned = [
         (timestamp, labels[0] if len(set(labels)) == 1 else "N")

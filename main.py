@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -22,6 +23,7 @@ import numpy as np
 from data.annotations import load_annotations
 from data.load_data import (
     SongFiles,
+    default_drive_dir,
     find_input_annotation,
     find_input_audio,
     find_songs,
@@ -66,7 +68,9 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Legacy Gaussian model name/path; repeat to compare Gaussian models.",
     )
-    parser.add_argument("--source", choices=("local", "cloud", "both"), default=None)
+    parser.add_argument(
+        "--source", choices=("local", "cloud", "rwc", "both"), default=None
+    )
     parser.add_argument(
         "--song",
         action="append",
@@ -166,6 +170,7 @@ def _select_source(
         options.append(("local", f"Local input/ songs ({len(local)} available)"))
     if cloud:
         options.append(("cloud", f"Google Drive AAM songs ({len(cloud)} available)"))
+        options.append(("rwc", "RWC 100 test songs (15 songs)"))
     if local and cloud:
         options.append(("both", "Songs from both local input/ and Google Drive"))
     if not options:
@@ -264,6 +269,63 @@ def _select_cloud_songs(
     ]
 
 
+RWC_TEST_SONGS = (37, 34, 90, 89, 3, 60, 72, 17, 35, 12, 69, 75, 40, 47, 39)
+
+
+def _select_rwc_songs(
+    cloud: dict[str, SongFiles], requested: list[str] | None, interactive: bool
+) -> list[InferenceSong]:
+    """Select actual RWC audio, never a same-numbered AAM mix."""
+
+    audio_dir = os.environ.get("RWC_AUDIO_DIR")
+    if not audio_dir:
+        try:
+            audio_dir = str(default_drive_dir() / "Other_datasets" / "RWC_Popular_100" / "audio")
+        except (FileNotFoundError, RuntimeError):
+            audio_dir = None
+    if not audio_dir:
+        raise FileNotFoundError(
+            "Audio file not found: the RWC Drive folder contains only .npz feature "
+            "files, not playable audio. Use evaluate_rwc.py for the prediction vs "
+            "ground-truth comparison, or set RWC_AUDIO_DIR to an RWC audio folder."
+        )
+    root = Path(audio_dir).expanduser()
+    if not root.is_dir():
+        raise FileNotFoundError(f"RWC_AUDIO_DIR does not exist: {root}")
+    audio_files = {
+        path.stem.lower(): path
+        for path in root.rglob("*")
+        if path.is_file() and path.suffix.lower() in {".wav", ".flac", ".mp3", ".ogg"}
+    }
+    rwc = {
+        f"{song:04d}": audio_files.get(f"{song:04d}", audio_files.get(f"rwc_p{song:03d}"))
+        for song in RWC_TEST_SONGS
+        if f"{song:04d}" in audio_files or f"rwc_p{song:03d}" in audio_files
+    }
+    if not rwc:
+        raise FileNotFoundError(
+            f"No RWC test audio files (for example 0040) found under {root}."
+        )
+    if requested:
+        selected = _parse_cloud_request(",".join(requested), rwc, 2026)
+    elif interactive:
+        selected = ask_many(
+            "Which RWC test song(s) should run?",
+            [(song, f"RWC {song.song_id}") for song in rwc.values()],
+        )
+    else:
+        selected = list(rwc.values())
+    annotation_root = root.parent / "annotations" / "chords"
+    return [
+        InferenceSong(
+            song.stem,
+            song,
+            annotation_root / f"{song.stem}.csv" if (annotation_root / f"{song.stem}.csv").is_file() else None,
+        )
+        for song in selected
+    ]
+
+
 def _select_songs(
     args: argparse.Namespace,
     source: str,
@@ -281,6 +343,8 @@ def _select_songs(
         selected.extend(_select_local_songs(local, args.song, interactive))
     if source in {"cloud", "both"}:
         selected.extend(_select_cloud_songs(cloud, args.song, interactive, args.seed))
+    if source == "rwc":
+        selected.extend(_select_rwc_songs(cloud, args.song, interactive))
     return selected
 
 
@@ -333,6 +397,12 @@ def _run_hierarchical(
         csv_path = folder / f"{song.name}_chords.csv"
         json_path = folder / f"{song.name}_chords.json"
         viewer_path = args.output_dir / f"{song.name}_viewer.html"
+        reference = None
+        if song.annotations is not None:
+            annotations = load_annotations(song.annotations)
+            starts, ends, labels = annotations.intervals(float(timeline.ends[-1]))
+            if len(labels):
+                reference = ChordTimeline(starts, ends, labels)
         timeline.write_csv(csv_path)
         timeline.write_json(json_path)
         write_interactive_viewer(
@@ -341,6 +411,7 @@ def _run_hierarchical(
             timeline,
             viewer_path,
             model_name="Hierarchical CNN + second-order HSMM",
+            reference=reference,
         )
         result: dict[str, object] = {
             "pipeline": "hierarchical",
@@ -494,7 +565,7 @@ def run(args: argparse.Namespace) -> int:
         )
 
     local = find_input_audio(args.input_dir)
-    needs_cloud = not args.non_interactive or args.source in {"cloud", "both"}
+    needs_cloud = not args.non_interactive or args.source in {"cloud", "rwc", "both"}
     cloud, cloud_error = _load_cloud_songs(args) if needs_cloud else ({}, None)
     source = _select_source(args, local, cloud, cloud_error)
     songs = _select_songs(args, source, local, cloud)
