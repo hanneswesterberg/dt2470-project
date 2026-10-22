@@ -5,6 +5,7 @@ from __future__ import annotations
 import html
 import json
 import os
+import shutil
 from pathlib import Path
 from urllib.parse import quote
 
@@ -20,12 +21,19 @@ def _relative_audio_url(audio_path: Path, viewer_path: Path) -> str:
 
 
 def _browser_audio(audio_path: Path, viewer_path: Path) -> Path:
-    """Return broadly playable audio, transcoding formats such as FLAC to WAV."""
+    """Put a browser-playable copy beside the viewer.
 
-    if audio_path.suffix.lower() in {".mp3", ".wav", ".ogg"}:
-        return audio_path
+    Keeping the media under the output directory also works when the viewer is
+    served with ``python -m http.server`` from ``output/``.
+    """
+
     media_dir = viewer_path.parent / "media"
     media_dir.mkdir(parents=True, exist_ok=True)
+    if audio_path.suffix.lower() in {".mp3", ".wav", ".ogg"}:
+        target = media_dir / audio_path.name
+        if not target.is_file() or target.stat().st_mtime < audio_path.stat().st_mtime:
+            shutil.copy2(audio_path, target)
+        return target
     target = media_dir / f"{audio_path.stem}_browser.wav"
     if target.is_file() and target.stat().st_mtime >= audio_path.stat().st_mtime:
         return target
