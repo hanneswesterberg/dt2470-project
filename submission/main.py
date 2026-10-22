@@ -394,7 +394,7 @@ def _run_hierarchical(
         viewer_path = args.output_dir / f"{song.name}_viewer.html"
         reference = None
         if song.annotations is not None:
-            annotations = load_annotations(song.annotations)
+            annotations = load_annotations(song.annotations, hierarchical=True)
             starts, ends, labels = annotations.intervals(float(timeline.ends[-1]))
             if len(labels):
                 reference = ChordTimeline(starts, ends, labels)

@@ -160,12 +160,13 @@ def find_input_audio(input_dir: Path | str) -> list[Path]:
 
 
 def find_input_annotation(audio_path: Path) -> Path | None:
-    """Find an optional AAM annotation next to an input audio file."""
+    """Find an optional annotation beside the audio or in the project dataset."""
 
     base = _song_id(audio_path)
     candidates = (
         audio_path.with_name(f"{base}_beatinfo.arff"),
         audio_path.with_name(f"{base}.arff"),
         audio_path.parent / "annotations" / f"{base}_beatinfo.arff",
+        audio_path.parent.parent / "annotations" / f"{base}.csv",
     )
     return next((path for path in candidates if path.is_file()), None)

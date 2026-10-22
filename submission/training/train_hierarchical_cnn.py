@@ -7,8 +7,13 @@ import copy
 import csv
 import json
 import random
+import sys
 from collections import Counter
 from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 if __name__ == "__main__":
     from scripts.environments import restart_in_application_environment
@@ -37,12 +42,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--split-manifest",
         type=Path,
-        default=Path("models/hierarchical/split_manifest.json"),
+        default=Path("models/split_manifest.json"),
     )
     parser.add_argument(
         "--reference-checkpoint",
         type=Path,
-        default=Path("models/hierarchical/best_model.pt"),
+        default=Path("models/best_model.pt"),
         help="Checkpoint used for vocabulary and architecture validation.",
     )
     parser.add_argument(

@@ -5,40 +5,64 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>beatles_something · Chord viewer</title>
   <style>
-    :root { color-scheme: dark; --ink:#f5f2e9; --muted:#a8a49a;
-      --panel:#181917; --line:#32342f; --accent:#e9b949; --accent2:#66c7a5; }
+    :root { color-scheme: dark; --ink:#f7f3e8; --muted:#aaa79e;
+      --panel:#171916; --panel2:#20231e; --line:#353931; --accent:#f3c34f;
+      --accent2:#6ed3ae; --danger:#ed7b74; }
     * { box-sizing:border-box; }
-    body { margin:0; min-height:100vh; background:#0d0e0c; color:var(--ink);
+    body { margin:0; min-height:100vh; background:radial-gradient(circle at 50% 0,#20231c 0,#0d0e0c 38%); color:var(--ink);
       font:15px/1.45 ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
-    main { width:min(1120px,calc(100% - 32px)); margin:0 auto; padding:42px 0 64px; }
+    main { width:min(1320px,calc(100% - 32px)); margin:0 auto; padding:36px 0 64px; }
     header { display:flex; align-items:end; justify-content:space-between; gap:24px;
       margin-bottom:24px; }
     h1 { margin:0; font-size:clamp(27px,5vw,48px); line-height:1.05; letter-spacing:-.035em; }
     .eyebrow { color:var(--accent); font-size:12px; font-weight:750; letter-spacing:.13em;
       text-transform:uppercase; margin-bottom:8px; }
     .model { color:var(--muted); text-align:right; }
-    .player { background:var(--panel); border:1px solid var(--line); border-radius:18px;
-      padding:22px; box-shadow:0 20px 60px #0006; }
+    .player { background:linear-gradient(145deg,#191b18,#131512); border:1px solid var(--line); border-radius:24px;
+      padding:clamp(18px,3vw,32px); box-shadow:0 24px 80px #0008; }
     audio { width:100%; height:42px; }
-    .now { display:grid; grid-template-columns:1fr minmax(180px,2fr) 1fr; align-items:center;
-      gap:18px; min-height:190px; margin:18px 0; text-align:center; }
+    .now { display:grid; grid-template-columns:1fr minmax(240px,2fr) 1fr; align-items:center;
+      gap:18px; min-height:175px; margin:14px 0 20px; text-align:center; }
     .side { color:var(--muted); } .side strong { display:block; color:#d8d5cc;
       font-size:clamp(20px,3vw,30px); margin-top:5px; }
     .current { font-size:clamp(64px,13vw,132px); font-weight:850; line-height:.95;
       letter-spacing:-.07em; color:var(--accent); text-shadow:0 7px 30px #e9b94922; }
     .time { color:var(--muted); font-variant-numeric:tabular-nums; margin-top:14px; }
-    .overview { position:relative; display:flex; height:72px; overflow:hidden;
+    .truth-now { display:inline-flex; align-items:center; gap:8px; margin-top:12px; padding:6px 11px;
+      border:1px solid var(--line); border-radius:999px; color:var(--muted); background:#0e100d; }
+    .truth-now strong { color:var(--ink); font-size:17px; }
+    .agreement { width:9px; height:9px; border-radius:50%; background:var(--muted); }
+    .agreement.match { background:var(--accent2); box-shadow:0 0 12px var(--accent2); }
+    .agreement.mismatch { background:var(--danger); }
+    .rolling-head,.map-label { display:flex; justify-content:space-between; align-items:center;
+      color:var(--muted); margin:6px 2px 9px; font-size:13px; }
+    .rolling-head strong { color:var(--ink); font-size:15px; }
+    .rolling { display:grid; grid-template-columns:repeat(6,minmax(142px,1fr)); gap:10px;
+      overflow-x:auto; padding:5px 3px 16px; scroll-snap-type:x proximity; }
+    .roll-card { position:relative; min-height:132px; border:1px solid var(--line); border-radius:16px;
+      background:#10120f; color:var(--ink); padding:14px; text-align:left; cursor:pointer;
+      overflow:hidden; scroll-snap-align:center; transition:transform .2s,border-color .2s,opacity .2s; }
+    .roll-card::before { content:''; position:absolute; inset:0 auto 0 0; width:5px; background:var(--card-color); }
+    .roll-card:hover { border-color:#777d70; transform:translateY(-2px); }
+    .roll-card.past { opacity:.48; }
+    .roll-card.now-card { border-color:var(--accent); background:#292515;
+      box-shadow:0 0 0 1px var(--accent),0 10px 35px #0006; transform:translateY(-3px); }
+    .roll-role { color:var(--muted); font-size:10px; font-weight:800; letter-spacing:.13em; text-transform:uppercase; }
+    .roll-chord { display:block; margin:7px 0 5px; font-size:clamp(25px,3vw,38px); font-weight:850; line-height:1; }
+    .roll-time,.roll-truth { display:block; color:var(--muted); font-size:11px; font-variant-numeric:tabular-nums; }
+    .roll-truth { margin-top:8px; padding-top:7px; border-top:1px solid var(--line); }
+    .roll-truth strong { color:var(--ink); font-size:13px; }
+    .overview { position:relative; display:flex; height:28px; overflow:hidden;
       border:1px solid var(--line); border-radius:12px; background:#11120f; cursor:pointer; }
     .segment { min-width:2px; height:100%; display:flex; align-items:center;
       justify-content:center; overflow:hidden; border-right:1px solid #0d0e0c99;
       font-size:11px; font-weight:700; color:#10110f; user-select:none; }
-    .segment span { overflow:hidden; text-overflow:ellipsis; padding:0 4px; }
-    .reference-label { color:var(--muted); margin:18px 2px 6px; font-size:13px; }
-    .reference-overview { position:relative; display:flex; height:42px; overflow:hidden;
+    .overview .segment span,.reference-overview .segment span { display:none; }
+    .reference-overview { position:relative; display:flex; height:20px; overflow:hidden;
       border:1px solid var(--line); border-radius:12px; background:#11120f; }
     .playhead { position:absolute; z-index:4; top:0; bottom:0; width:3px;
       background:white; box-shadow:0 0 12px #fff; pointer-events:none; transform:translateX(-1px); }
-    .events-head { display:flex; justify-content:space-between; margin:24px 2px 10px; }
+    .events-head { display:flex; justify-content:space-between; margin:28px 2px 10px; }
     .events-head span:last-child { color:var(--muted); }
     .event-list { display:flex; gap:8px; overflow-x:auto; scroll-behavior:smooth;
       padding:2px 2px 12px; scrollbar-color:#555 transparent; }
@@ -49,9 +73,11 @@
     .event .chord { display:block; font-size:22px; font-weight:750; }
     .event .stamp { color:var(--muted); font-size:12px; font-variant-numeric:tabular-nums; }
     .hint { color:var(--muted); margin:18px 2px 0; font-size:13px; }
+    @media (max-width:850px) { .rolling { grid-template-columns:repeat(6,155px); } }
     @media (max-width:650px) { header { align-items:start; flex-direction:column; }
       .model { text-align:left; } .now { grid-template-columns:1fr 2fr 1fr; min-height:150px; }
-      .current { font-size:58px; } .side { font-size:11px; } .side strong { font-size:17px; } }
+      .current { font-size:58px; } .side { font-size:11px; } .side strong { font-size:17px; }
+      .roll-card { min-height:120px; } }
   </style>
 </head>
 <body>
@@ -62,9 +88,13 @@
     <audio id="audio" controls preload="metadata" src="media/beatles_something_browser.wav"></audio>
     <div class="now">
       <div class="side">Previous<strong id="previous">—</strong></div>
-      <div><div class="current" id="current">—</div><div class="time" id="time">0:00 / 0:00</div></div>
+      <div><div class="current" id="current">—</div><div class="time" id="time">0:00 / 0:00</div>
+        </div>
       <div class="side">Next<strong id="next">—</strong></div>
     </div>
+    <div class="rolling-head"><strong>Chord sequence</strong><span>Previous · now · upcoming</span></div>
+    <div class="rolling" id="rolling"></div>
+    <div class="map-label"><span>Prediction · full song</span><span>Click to seek</span></div>
     <div class="overview" id="overview"><div class="playhead" id="playhead"></div></div>
     
     <div class="events-head"><strong>Chord events</strong><span id="event-count"></span></div>
@@ -84,6 +114,8 @@ const next = document.getElementById('next');
 const clock = document.getElementById('time');
 const playhead = document.getElementById('playhead');
 const groundTruth = document.getElementById('ground-truth');
+const agreement = document.getElementById('agreement');
+const rolling = document.getElementById('rolling');
 const duration = Math.max(...events.map(event => event.end));
 const palette = ['#e9b949','#66c7a5','#e07a5f','#81b29a','#a98eda','#5fa8d3',
   '#f2a65a','#8ecae6','#c9ada7','#90be6d','#f28482','#b8b8ff'];
@@ -101,6 +133,24 @@ const precise = seconds => {
   const minutes = Math.floor(seconds / 60); const rest = (seconds % 60).toFixed(1);
   return `${minutes}:${rest.padStart(4,'0')}`;
 };
+const truthAt = time => referenceEvents.find(event => time >= event.start && time < event.end);
+function renderRolling(activeIndex) {
+  rolling.innerHTML='';
+  const first=Math.max(0,Math.min(activeIndex-1,Math.max(0,events.length-6)));
+  events.slice(first,first+6).forEach((event,localIndex) => {
+    const index=first+localIndex; const offset=index-activeIndex;
+    const truth=truthAt((event.start+event.end)/2);
+    const role=offset===0?'Now':offset<0?'Previous':offset===1?'Next':`Coming +${offset}`;
+    const card=document.createElement('button'); card.type='button';
+    card.className=`roll-card ${offset===0?'now-card':offset<0?'past':'future'}`;
+    card.style.setProperty('--card-color',palette[rootIndex(event.chord)]);
+    card.innerHTML=`<span class="roll-role">${role}</span><strong class="roll-chord">${event.chord}</strong>
+      <span class="roll-time">${precise(event.start)}–${precise(event.end)}</span>
+      ${truth?`<span class="roll-truth">Ground truth <strong>${truth.chord}</strong></span>`:''}`;
+    card.addEventListener('click',()=>{audio.currentTime=event.start;audio.play();});
+    rolling.appendChild(card);
+  });
+}
 events.forEach((event, index) => {
   const segment = document.createElement('div'); segment.className = 'segment';
   segment.style.width = `${100 * (event.end-event.start) / duration}%`;
@@ -134,8 +184,10 @@ function update() {
   if (index < 0) index = time >= duration ? events.length-1 : 0;
   current.textContent=events[index].chord;
   if (groundTruth) {
-    const truth = referenceEvents.find(event => time >= event.start && time < event.end);
+    const truth = truthAt(time);
     groundTruth.textContent = truth ? truth.chord : '—';
+    agreement.className=`agreement ${truth ? (truth.chord===events[index].chord?'match':'mismatch') : ''}`;
+    agreement.title=truth ? (truth.chord===events[index].chord?'Prediction matches':'Prediction differs') : '';
   }
   previous.textContent=index ? events[index-1].chord : '—';
   next.textContent=index+1<events.length ? events[index+1].chord : '—';
@@ -145,6 +197,7 @@ function update() {
     if (active >= 0) list.children[active].classList.remove('active');
     active=index; const item=list.children[index]; item.classList.add('active');
     item.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+    renderRolling(index);
   }
 }
 audio.addEventListener('timeupdate',update); audio.addEventListener('loadedmetadata',update);

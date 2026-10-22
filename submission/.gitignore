@@ -1,0 +1,6 @@
+.DS_Store
+.cache/
+.venv/
+.venv-beatnet/
+__pycache__/
+*.py[cod]
