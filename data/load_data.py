@@ -56,18 +56,39 @@ def default_drive_dir(env_file: Path | str = ".env") -> Path:
     )
     cloud_storage = Path.home() / "Library" / "CloudStorage"
     if email:
-        candidates = [cloud_storage / f"GoogleDrive-{email}" / "My Drive" / project]
+        drive_root = cloud_storage / f"GoogleDrive-{email}"
+        shared_candidates = sorted(drive_root.glob(f".shortcut-targets-by-id/*/{project}"))
+        candidates = [
+            *shared_candidates,
+            drive_root / "My Drive" / project,
+        ]
     else:
-        candidates = sorted(cloud_storage.glob(f"GoogleDrive-*/My Drive/{project}"))
+        candidates = sorted(
+            path
+            for drive_root in cloud_storage.glob("GoogleDrive-*")
+            for path in (
+                drive_root / "My Drive" / project,
+                *drive_root.glob(f".shortcut-targets-by-id/*/{project}"),
+            )
+        )
     existing = [candidate for candidate in candidates if candidate.is_dir()]
     if len(existing) == 1:
         return existing[0]
-    if not email:
+    if not existing:
         raise RuntimeError(
-            "Could not uniquely locate the mounted Google Drive dataset. Set "
+            "Could not locate the shared Google Drive project folder. Set "
             "AAM_DRIVE_DIR, or GOOGLE_DRIVE_EMAIL and AAM_PROJECT_FOLDER, in .env."
         )
-    return candidates[0]
+    if len(existing) > 1 and email:
+        shared = [path for path in existing if ".shortcut-targets-by-id" in path.parts]
+        if len(shared) == 1:
+            return shared[0]
+    if len(existing) > 1:
+        raise RuntimeError(
+            "Found multiple Google Drive project folders. Set AAM_DRIVE_DIR "
+            "to the folder used for this project."
+        )
+    return existing[0]
 
 
 def _song_id(path: Path) -> str:

@@ -41,6 +41,7 @@ def write_interactive_viewer(
     output_path: Path | str,
     *,
     model_name: str,
+    reference: ChordTimeline | None = None,
 ) -> Path:
     """Create one dependency-free HTML viewer and return its path."""
 
@@ -57,6 +58,15 @@ def write_interactive_viewer(
     if not events:
         raise ValueError("Cannot create an interactive viewer for an empty timeline.")
     event_json = json.dumps(events, ensure_ascii=False).replace("</", "<\\/")
+    reference_events = []
+    if reference is not None:
+        reference_events = [
+            {"start": float(start), "end": float(end), "chord": str(label)}
+            for start, end, label in zip(
+                reference.starts, reference.ends, reference.labels
+            )
+        ]
+    reference_json = json.dumps(reference_events, ensure_ascii=False).replace("</", "<\\/")
     playable_audio = _browser_audio(Path(audio_path), target)
     audio_url = _relative_audio_url(playable_audio, target)
     title = html.escape(song_name)
@@ -96,6 +106,9 @@ def write_interactive_viewer(
       justify-content:center; overflow:hidden; border-right:1px solid #0d0e0c99;
       font-size:11px; font-weight:700; color:#10110f; user-select:none; }}
     .segment span {{ overflow:hidden; text-overflow:ellipsis; padding:0 4px; }}
+    .reference-label {{ color:var(--muted); margin:18px 2px 6px; font-size:13px; }}
+    .reference-overview {{ position:relative; display:flex; height:42px; overflow:hidden;
+      border:1px solid var(--line); border-radius:12px; background:#11120f; }}
     .playhead {{ position:absolute; z-index:4; top:0; bottom:0; width:3px;
       background:white; box-shadow:0 0 12px #fff; pointer-events:none; transform:translateX(-1px); }}
     .events-head {{ display:flex; justify-content:space-between; margin:24px 2px 10px; }}
@@ -126,6 +139,7 @@ def write_interactive_viewer(
       <div class="side">Next<strong id="next">—</strong></div>
     </div>
     <div class="overview" id="overview"><div class="playhead" id="playhead"></div></div>
+    {('<div class="reference-label">Ground truth: <strong id="ground-truth">—</strong></div><div class="reference-overview" id="reference-overview"></div>') if reference_events else ''}
     <div class="events-head"><strong>Chord events</strong><span id="event-count"></span></div>
     <div class="event-list" id="event-list"></div>
     <p class="hint">Click any chord to seek. Space plays or pauses; ← and → jump five seconds.</p>
@@ -133,6 +147,7 @@ def write_interactive_viewer(
 </main>
 <script>
 const events = {event_json};
+const referenceEvents = {reference_json};
 const audio = document.getElementById('audio');
 const overview = document.getElementById('overview');
 const list = document.getElementById('event-list');
@@ -141,6 +156,7 @@ const previous = document.getElementById('previous');
 const next = document.getElementById('next');
 const clock = document.getElementById('time');
 const playhead = document.getElementById('playhead');
+const groundTruth = document.getElementById('ground-truth');
 const duration = Math.max(...events.map(event => event.end));
 const palette = ['#e9b949','#66c7a5','#e07a5f','#81b29a','#a98eda','#5fa8d3',
   '#f2a65a','#8ecae6','#c9ada7','#90be6d','#f28482','#b8b8ff'];
@@ -171,6 +187,18 @@ events.forEach((event, index) => {{
   button.addEventListener('click', () => {{ audio.currentTime=event.start; audio.play(); }});
   button.dataset.index=index; list.appendChild(button);
 }});
+if (referenceEvents.length) {{
+  const referenceOverview = document.getElementById('reference-overview');
+  referenceEvents.forEach(event => {{
+    const segment = document.createElement('div'); segment.className = 'segment';
+    segment.style.width = `${{100 * (event.end-event.start) / duration}}%`;
+    segment.style.background = palette[rootIndex(event.chord)];
+    segment.title = `${{event.chord}} · ${{precise(event.start)}}–${{precise(event.end)}}`;
+    segment.innerHTML = `<span>${{event.chord}}</span>`;
+    segment.addEventListener('click', () => {{ audio.currentTime=event.start; audio.play(); }});
+    referenceOverview.appendChild(segment);
+  }});
+}}
 document.getElementById('event-count').textContent=`${{events.length}} events`;
 let active=-1;
 function update() {{
@@ -178,6 +206,10 @@ function update() {{
   let index=events.findIndex(event => time >= event.start && time < event.end);
   if (index < 0) index = time >= duration ? events.length-1 : 0;
   current.textContent=events[index].chord;
+  if (groundTruth) {{
+    const truth = referenceEvents.find(event => time >= event.start && time < event.end);
+    groundTruth.textContent = truth ? truth.chord : '—';
+  }}
   previous.textContent=index ? events[index-1].chord : '—';
   next.textContent=index+1<events.length ? events[index+1].chord : '—';
   clock.textContent=`${{format(time)}} / ${{format(audio.duration || duration)}}`;

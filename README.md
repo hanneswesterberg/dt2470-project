@@ -149,6 +149,22 @@ split_manifest.json    Fixed 70/15/15 train, validation, and test split
 
 Running inference does not require Google Drive access. The large training feature files and the original audio dataset are not stored in Git. This keeps the repository small and avoids distributing copyrighted audio.
 
+The shared project data is kept in Google Drive under `Delas med mig/DT2470 Project`. The relevant folders are:
+
+```text
+DT2470 Project/
+├── Chord Recognition - Models, Data & Evaluation/
+│   ├── CNN Features (100 RWC songs)/
+│   ├── Checkpoints and Split/
+│   ├── Rolling CNN Predictions/
+│   └── HSMM Evaluation Results/
+└── full_data/
+    ├── 0001-1000-audio-mixes/
+    └── 0001-1000-annotations-v1.1.0/
+```
+
+`data/load_data.py` looks for this shared folder through Google Drive Desktop. If it is not found automatically, set `AAM_DRIVE_DIR` in `.env` to the local folder path. The code does not use a separate personal copy of the dataset.
+
 ## Training the CNN
 
 The CNN training implementation is `train_hierarchical_cnn.py`. It uses the CNN implementation from `src/hierarchical/hierarchical_cnn.py`, so training and inference do not have separate copies of the architecture.
@@ -195,6 +211,17 @@ Run all tests with:
 ```
 
 The architecture notes are in `notebooks/architecture_notes.ipynb`.
+
+## RWC test evaluation
+
+The feature-level evaluation command measures the CNN on the fixed 15-song test split:
+
+```bash
+.venv/bin/python evaluate_rwc.py \
+  --feature-dir "/path/to/DT2470 Project/Chord Recognition - Models, Data & Evaluation/CNN Features (100 RWC songs)"
+```
+
+The test songs are `37, 34, 90, 89, 3, 60, 72, 17, 35, 12, 69, 75, 40, 47, 39`. The report contains root accuracy, root-plus-quality accuracy, and root-plus-quality-plus-seventh accuracy. It also reports the percentage of each song's annotated duration for which the predicted chord is correct. The feature files contain the rolling CNN inputs and labels, so this command evaluates the CNN emissions directly. Full CNN + HSMM evaluation is available through `evaluate_hierarchical.py` when the corresponding audio and annotations are available.
 
 ## Evaluating against annotations
 

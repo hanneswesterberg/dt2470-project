@@ -1,4 +1,4 @@
-.PHONY: setup run train train-cnn train-gaussian evaluate test
+.PHONY: setup run train train-cnn train-gaussian evaluate evaluate-rwc test
 
 setup:
 	python3 setup_env.py --with-beatnet
@@ -17,6 +17,9 @@ train-gaussian:
 
 evaluate:
 	.venv/bin/python evaluate_hierarchical.py
+
+evaluate-rwc:
+	.venv/bin/python evaluate_rwc.py
 
 test:
 	python3 setup_env.py

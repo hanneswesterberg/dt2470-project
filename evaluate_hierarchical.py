@@ -30,6 +30,13 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--top-roots", type=int, default=4, choices=range(1, 13))
     parser.add_argument("--hsmm-order", type=int, default=2, choices=(1, 2))
     parser.add_argument("--limit", type=int, default=None)
+    parser.add_argument(
+        "--songs",
+        nargs="+",
+        type=int,
+        default=None,
+        help="Specific RWC song numbers to evaluate.",
+    )
     return parser
 
 
@@ -97,6 +104,9 @@ def write_results(output_dir: Path, results: list[dict[str, object]]) -> None:
 def main() -> int:
     args = build_parser().parse_args()
     songs = list(find_songs(args.audio_dir, args.annotation_dir).values())
+    if args.songs:
+        wanted = {f"{song:04d}" for song in args.songs}
+        songs = [song for song in songs if song.song_id in wanted]
     if args.limit is not None:
         songs = songs[: args.limit]
     if not songs:
