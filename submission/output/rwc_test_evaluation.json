@@ -16,7 +16,7 @@
     47,
     39
   ],
-  "cnn_macro_average": {
+  "cnn_only_macro_average": {
     "root_accuracy": 0.8831816316825667,
     "root_quality_accuracy": 0.8268141329396921,
     "root_quality_seventh_accuracy": 0.7008948036392126,
@@ -28,7 +28,7 @@
     {
       "song": 37,
       "frames": 106,
-      "cnn": {
+      "cnn_only": {
         "root_accuracy": 0.8018867924528302,
         "root_quality_accuracy": 0.6886792452830188,
         "root_quality_seventh_accuracy": 0.6886792452830188,
@@ -41,7 +41,7 @@
     {
       "song": 34,
       "frames": 120,
-      "cnn": {
+      "cnn_only": {
         "root_accuracy": 0.8916666666666667,
         "root_quality_accuracy": 0.875,
         "root_quality_seventh_accuracy": 0.7333333333333333,
@@ -54,7 +54,7 @@
     {
       "song": 90,
       "frames": 126,
-      "cnn": {
+      "cnn_only": {
         "root_accuracy": 0.8968253968253969,
         "root_quality_accuracy": 0.8571428571428571,
         "root_quality_seventh_accuracy": 0.746031746031746,
@@ -67,7 +67,7 @@
     {
       "song": 89,
       "frames": 107,
-      "cnn": {
+      "cnn_only": {
         "root_accuracy": 0.8411214953271028,
         "root_quality_accuracy": 0.7757009345794392,
         "root_quality_seventh_accuracy": 0.7009345794392523,
@@ -80,7 +80,7 @@
     {
       "song": 3,
       "frames": 155,
-      "cnn": {
+      "cnn_only": {
         "root_accuracy": 0.9290322580645162,
         "root_quality_accuracy": 0.896774193548387,
         "root_quality_seventh_accuracy": 0.8,
@@ -93,7 +93,7 @@
     {
       "song": 60,
       "frames": 85,
-      "cnn": {
+      "cnn_only": {
         "root_accuracy": 1.0,
         "root_quality_accuracy": 0.788235294117647,
         "root_quality_seventh_accuracy": 0.5529411764705883,
@@ -106,7 +106,7 @@
     {
       "song": 72,
       "frames": 119,
-      "cnn": {
+      "cnn_only": {
         "root_accuracy": 0.773109243697479,
         "root_quality_accuracy": 0.7563025210084033,
         "root_quality_seventh_accuracy": 0.5630252100840336,
@@ -119,7 +119,7 @@
     {
       "song": 17,
       "frames": 121,
-      "cnn": {
+      "cnn_only": {
         "root_accuracy": 0.9008264462809917,
         "root_quality_accuracy": 0.8760330578512396,
         "root_quality_seventh_accuracy": 0.743801652892562,
@@ -132,7 +132,7 @@
     {
       "song": 35,
       "frames": 106,
-      "cnn": {
+      "cnn_only": {
         "root_accuracy": 0.9150943396226415,
         "root_quality_accuracy": 0.7735849056603774,
         "root_quality_seventh_accuracy": 0.6886792452830188,
@@ -145,7 +145,7 @@
     {
       "song": 12,
       "frames": 99,
-      "cnn": {
+      "cnn_only": {
         "root_accuracy": 0.9191919191919192,
         "root_quality_accuracy": 0.9090909090909091,
         "root_quality_seventh_accuracy": 0.6868686868686869,
@@ -158,7 +158,7 @@
     {
       "song": 69,
       "frames": 163,
-      "cnn": {
+      "cnn_only": {
         "root_accuracy": 0.9754601226993865,
         "root_quality_accuracy": 0.8588957055214724,
         "root_quality_seventh_accuracy": 0.588957055214724,
@@ -171,7 +171,7 @@
     {
       "song": 75,
       "frames": 93,
-      "cnn": {
+      "cnn_only": {
         "root_accuracy": 0.8064516129032258,
         "root_quality_accuracy": 0.7849462365591398,
         "root_quality_seventh_accuracy": 0.6559139784946236,
@@ -184,7 +184,7 @@
     {
       "song": 40,
       "frames": 169,
-      "cnn": {
+      "cnn_only": {
         "root_accuracy": 0.7218934911242604,
         "root_quality_accuracy": 0.7159763313609467,
         "root_quality_seventh_accuracy": 0.6863905325443787,
@@ -197,7 +197,7 @@
     {
       "song": 47,
       "frames": 132,
-      "cnn": {
+      "cnn_only": {
         "root_accuracy": 0.9621212121212122,
         "root_quality_accuracy": 0.9545454545454546,
         "root_quality_seventh_accuracy": 0.8409090909090909,
@@ -210,7 +210,7 @@
     {
       "song": 39,
       "frames": 92,
-      "cnn": {
+      "cnn_only": {
         "root_accuracy": 0.9130434782608695,
         "root_quality_accuracy": 0.8913043478260869,
         "root_quality_seventh_accuracy": 0.8369565217391305,
@@ -220,5 +220,389 @@
         "duration_seconds": 281.31100000000004
       }
     }
-  ]
+  ],
+  "continuous_pipeline_comparison": [
+    {
+      "song": "RWC_P037",
+      "frames": 1009,
+      "posterior_source": "saved continuous posterior",
+      "frontend_cache_hit": true,
+      "cnn_only": {
+        "root_accuracy": 0.8453914767096135,
+        "root_quality_accuracy": 0.6491575817641229,
+        "root_quality_seventh_accuracy": 0.6144697720515362,
+        "song_root_percent": 0.8453914767096136,
+        "song_root_quality_percent": 0.6491575817641227,
+        "song_root_quality_seventh_percent": 0.6144697720515362,
+        "duration_seconds": 201.8
+      },
+      "cnn_hsmm": {
+        "root_accuracy": 0.8751238850346879,
+        "root_quality_accuracy": 0.7046580773042617,
+        "root_quality_seventh_accuracy": 0.7046580773042617,
+        "song_root_percent": 0.8751238850346879,
+        "song_root_quality_percent": 0.7046580773042616,
+        "song_root_quality_seventh_percent": 0.7046580773042616,
+        "duration_seconds": 201.8
+      }
+    },
+    {
+      "song": "RWC_P034",
+      "frames": 1000,
+      "posterior_source": "saved continuous posterior",
+      "frontend_cache_hit": true,
+      "cnn_only": {
+        "root_accuracy": 0.725,
+        "root_quality_accuracy": 0.689,
+        "root_quality_seventh_accuracy": 0.56,
+        "song_root_percent": 0.7249999999999999,
+        "song_root_quality_percent": 0.6889999999999997,
+        "song_root_quality_seventh_percent": 0.5599999999999998,
+        "duration_seconds": 200.00000000000003
+      },
+      "cnn_hsmm": {
+        "root_accuracy": 0.778,
+        "root_quality_accuracy": 0.769,
+        "root_quality_seventh_accuracy": 0.69,
+        "song_root_percent": 0.7779999999999999,
+        "song_root_quality_percent": 0.7689999999999999,
+        "song_root_quality_seventh_percent": 0.6899999999999997,
+        "duration_seconds": 200.00000000000003
+      }
+    },
+    {
+      "song": "RWC_P090",
+      "frames": 1359,
+      "posterior_source": "saved continuous posterior",
+      "frontend_cache_hit": true,
+      "cnn_only": {
+        "root_accuracy": 0.8800588668138337,
+        "root_quality_accuracy": 0.8462104488594555,
+        "root_quality_seventh_accuracy": 0.7527593818984547,
+        "song_root_percent": 0.8800588668138338,
+        "song_root_quality_percent": 0.8462104488594555,
+        "song_root_quality_seventh_percent": 0.7527593818984549,
+        "duration_seconds": 271.79999999999995
+      },
+      "cnn_hsmm": {
+        "root_accuracy": 0.9013980868285504,
+        "root_quality_accuracy": 0.8933038999264165,
+        "root_quality_seventh_accuracy": 0.8153053715967623,
+        "song_root_percent": 0.9013980868285506,
+        "song_root_quality_percent": 0.8933038999264166,
+        "song_root_quality_seventh_percent": 0.8153053715967623,
+        "duration_seconds": 271.79999999999995
+      }
+    },
+    {
+      "song": "RWC_P089",
+      "frames": 1075,
+      "posterior_source": "saved continuous posterior",
+      "frontend_cache_hit": true,
+      "cnn_only": {
+        "root_accuracy": 0.6372093023255814,
+        "root_quality_accuracy": 0.5916279069767442,
+        "root_quality_seventh_accuracy": 0.4781395348837209,
+        "song_root_percent": 0.6372093023255814,
+        "song_root_quality_percent": 0.5916279069767442,
+        "song_root_quality_seventh_percent": 0.4781395348837211,
+        "duration_seconds": 214.99999999999997
+      },
+      "cnn_hsmm": {
+        "root_accuracy": 0.6809302325581396,
+        "root_quality_accuracy": 0.6613953488372093,
+        "root_quality_seventh_accuracy": 0.5525581395348838,
+        "song_root_percent": 0.6809302325581396,
+        "song_root_quality_percent": 0.6613953488372093,
+        "song_root_quality_seventh_percent": 0.5525581395348838,
+        "duration_seconds": 214.99999999999997
+      }
+    },
+    {
+      "song": "RWC_P003",
+      "frames": 813,
+      "posterior_source": "saved continuous posterior",
+      "frontend_cache_hit": true,
+      "cnn_only": {
+        "root_accuracy": 0.7244772447724477,
+        "root_quality_accuracy": 0.6777367773677737,
+        "root_quality_seventh_accuracy": 0.6002460024600246,
+        "song_root_percent": 0.7244772447724477,
+        "song_root_quality_percent": 0.6777367773677736,
+        "song_root_quality_seventh_percent": 0.6002460024600248,
+        "duration_seconds": 162.6
+      },
+      "cnn_hsmm": {
+        "root_accuracy": 0.7675276752767528,
+        "root_quality_accuracy": 0.6961869618696187,
+        "root_quality_seventh_accuracy": 0.6100861008610086,
+        "song_root_percent": 0.7675276752767527,
+        "song_root_quality_percent": 0.6961869618696187,
+        "song_root_quality_seventh_percent": 0.6100861008610088,
+        "duration_seconds": 162.6
+      }
+    },
+    {
+      "song": "RWC_P060",
+      "frames": 1177,
+      "posterior_source": "saved continuous posterior",
+      "frontend_cache_hit": true,
+      "cnn_only": {
+        "root_accuracy": 0.9201359388275276,
+        "root_quality_accuracy": 0.7000849617672048,
+        "root_quality_seventh_accuracy": 0.35344095157179267,
+        "song_root_percent": 0.9201359388275275,
+        "song_root_quality_percent": 0.7000849617672049,
+        "song_root_quality_seventh_percent": 0.3534409515717927,
+        "duration_seconds": 235.39999999999998
+      },
+      "cnn_hsmm": {
+        "root_accuracy": 0.9388275276125744,
+        "root_quality_accuracy": 0.762107051826678,
+        "root_quality_seventh_accuracy": 0.4010195412064571,
+        "song_root_percent": 0.9388275276125742,
+        "song_root_quality_percent": 0.7621070518266783,
+        "song_root_quality_seventh_percent": 0.40101954120645716,
+        "duration_seconds": 235.39999999999998
+      }
+    },
+    {
+      "song": "RWC_P072",
+      "frames": 989,
+      "posterior_source": "saved continuous posterior",
+      "frontend_cache_hit": true,
+      "cnn_only": {
+        "root_accuracy": 0.7462082912032356,
+        "root_quality_accuracy": 0.7077856420626896,
+        "root_quality_seventh_accuracy": 0.5085945399393327,
+        "song_root_percent": 0.7462082912032355,
+        "song_root_quality_percent": 0.7077856420626893,
+        "song_root_quality_seventh_percent": 0.5085945399393327,
+        "duration_seconds": 197.8
+      },
+      "cnn_hsmm": {
+        "root_accuracy": 0.7714863498483316,
+        "root_quality_accuracy": 0.7583417593528817,
+        "root_quality_seventh_accuracy": 0.5733063700707786,
+        "song_root_percent": 0.7714863498483315,
+        "song_root_quality_percent": 0.7583417593528816,
+        "song_root_quality_seventh_percent": 0.5733063700707784,
+        "duration_seconds": 197.8
+      }
+    },
+    {
+      "song": "RWC_P017",
+      "frames": 1178,
+      "posterior_source": "saved continuous posterior",
+      "frontend_cache_hit": true,
+      "cnn_only": {
+        "root_accuracy": 0.830220713073005,
+        "root_quality_accuracy": 0.8039049235993209,
+        "root_quality_seventh_accuracy": 0.6528013582342954,
+        "song_root_percent": 0.8302207130730053,
+        "song_root_quality_percent": 0.8039049235993212,
+        "song_root_quality_seventh_percent": 0.6528013582342955,
+        "duration_seconds": 235.59999999999997
+      },
+      "cnn_hsmm": {
+        "root_accuracy": 0.8726655348047538,
+        "root_quality_accuracy": 0.8497453310696095,
+        "root_quality_seventh_accuracy": 0.7079796264855688,
+        "song_root_percent": 0.8726655348047541,
+        "song_root_quality_percent": 0.8497453310696098,
+        "song_root_quality_seventh_percent": 0.7079796264855689,
+        "duration_seconds": 235.59999999999997
+      }
+    },
+    {
+      "song": "RWC_P035",
+      "frames": 561,
+      "posterior_source": "saved continuous posterior",
+      "frontend_cache_hit": true,
+      "cnn_only": {
+        "root_accuracy": 0.8966131907308378,
+        "root_quality_accuracy": 0.875222816399287,
+        "root_quality_seventh_accuracy": 0.7290552584670231,
+        "song_root_percent": 0.896613190730838,
+        "song_root_quality_percent": 0.8752228163992872,
+        "song_root_quality_seventh_percent": 0.7290552584670232,
+        "duration_seconds": 112.19999999999999
+      },
+      "cnn_hsmm": {
+        "root_accuracy": 0.910873440285205,
+        "root_quality_accuracy": 0.8966131907308378,
+        "root_quality_seventh_accuracy": 0.7932263814616756,
+        "song_root_percent": 0.9108734402852051,
+        "song_root_quality_percent": 0.896613190730838,
+        "song_root_quality_seventh_percent": 0.7932263814616757,
+        "duration_seconds": 112.19999999999999
+      }
+    },
+    {
+      "song": "RWC_P012",
+      "frames": 984,
+      "posterior_source": "saved continuous posterior",
+      "frontend_cache_hit": true,
+      "cnn_only": {
+        "root_accuracy": 0.8455284552845529,
+        "root_quality_accuracy": 0.8302845528455285,
+        "root_quality_seventh_accuracy": 0.6392276422764228,
+        "song_root_percent": 0.8455284552845527,
+        "song_root_quality_percent": 0.8302845528455282,
+        "song_root_quality_seventh_percent": 0.6392276422764226,
+        "duration_seconds": 196.80000000000004
+      },
+      "cnn_hsmm": {
+        "root_accuracy": 0.8729674796747967,
+        "root_quality_accuracy": 0.866869918699187,
+        "root_quality_seventh_accuracy": 0.6534552845528455,
+        "song_root_percent": 0.8729674796747966,
+        "song_root_quality_percent": 0.866869918699187,
+        "song_root_quality_seventh_percent": 0.6534552845528454,
+        "duration_seconds": 196.80000000000004
+      }
+    },
+    {
+      "song": "RWC_P069",
+      "frames": 1762,
+      "posterior_source": "saved continuous posterior",
+      "frontend_cache_hit": true,
+      "cnn_only": {
+        "root_accuracy": 0.8972758229284904,
+        "root_quality_accuracy": 0.7877412031782066,
+        "root_quality_seventh_accuracy": 0.4988649262202043,
+        "song_root_percent": 0.8972758229284905,
+        "song_root_quality_percent": 0.7877412031782064,
+        "song_root_quality_seventh_percent": 0.4988649262202044,
+        "duration_seconds": 352.4
+      },
+      "cnn_hsmm": {
+        "root_accuracy": 0.8989784335981839,
+        "root_quality_accuracy": 0.8206583427922814,
+        "root_quality_seventh_accuracy": 0.5385925085130534,
+        "song_root_percent": 0.898978433598184,
+        "song_root_quality_percent": 0.8206583427922816,
+        "song_root_quality_seventh_percent": 0.5385925085130534,
+        "duration_seconds": 352.4
+      }
+    },
+    {
+      "song": "RWC_P075",
+      "frames": 979,
+      "posterior_source": "saved continuous posterior",
+      "frontend_cache_hit": true,
+      "cnn_only": {
+        "root_accuracy": 0.710929519918284,
+        "root_quality_accuracy": 0.6813074565883555,
+        "root_quality_seventh_accuracy": 0.5097037793667007,
+        "song_root_percent": 0.7109295199182838,
+        "song_root_quality_percent": 0.6813074565883552,
+        "song_root_quality_seventh_percent": 0.5097037793667006,
+        "duration_seconds": 195.80000000000004
+      },
+      "cnn_hsmm": {
+        "root_accuracy": 0.7293156281920327,
+        "root_quality_accuracy": 0.7242083758937692,
+        "root_quality_seventh_accuracy": 0.5526046986721144,
+        "song_root_percent": 0.7293156281920324,
+        "song_root_quality_percent": 0.7242083758937687,
+        "song_root_quality_seventh_percent": 0.5526046986721143,
+        "duration_seconds": 195.80000000000004
+      }
+    },
+    {
+      "song": "RWC_P040",
+      "frames": 1107,
+      "posterior_source": "saved continuous posterior",
+      "frontend_cache_hit": true,
+      "cnn_only": {
+        "root_accuracy": 0.6901535682023487,
+        "root_quality_accuracy": 0.6738934056007226,
+        "root_quality_seventh_accuracy": 0.6242095754290876,
+        "song_root_percent": 0.6901535682023486,
+        "song_root_quality_percent": 0.6738934056007226,
+        "song_root_quality_seventh_percent": 0.6242095754290876,
+        "duration_seconds": 221.39999999999998
+      },
+      "cnn_hsmm": {
+        "root_accuracy": 0.6838301716350497,
+        "root_quality_accuracy": 0.6747967479674797,
+        "root_quality_seventh_accuracy": 0.6458897922312556,
+        "song_root_percent": 0.6838301716350497,
+        "song_root_quality_percent": 0.6747967479674797,
+        "song_root_quality_seventh_percent": 0.6458897922312558,
+        "duration_seconds": 221.39999999999998
+      }
+    },
+    {
+      "song": "RWC_P047",
+      "frames": 1008,
+      "posterior_source": "saved continuous posterior",
+      "frontend_cache_hit": true,
+      "cnn_only": {
+        "root_accuracy": 0.8829365079365079,
+        "root_quality_accuracy": 0.876984126984127,
+        "root_quality_seventh_accuracy": 0.7579365079365079,
+        "song_root_percent": 0.8829365079365078,
+        "song_root_quality_percent": 0.876984126984127,
+        "song_root_quality_seventh_percent": 0.7579365079365078,
+        "duration_seconds": 201.60000000000002
+      },
+      "cnn_hsmm": {
+        "root_accuracy": 0.8948412698412699,
+        "root_quality_accuracy": 0.8948412698412699,
+        "root_quality_seventh_accuracy": 0.8045634920634921,
+        "song_root_percent": 0.8948412698412699,
+        "song_root_quality_percent": 0.8948412698412699,
+        "song_root_quality_seventh_percent": 0.8045634920634919,
+        "duration_seconds": 201.60000000000002
+      }
+    },
+    {
+      "song": "RWC_P039",
+      "frames": 1427,
+      "posterior_source": "saved continuous posterior",
+      "frontend_cache_hit": true,
+      "cnn_only": {
+        "root_accuracy": 0.8731604765241766,
+        "root_quality_accuracy": 0.8234057463209531,
+        "root_quality_seventh_accuracy": 0.747021723896286,
+        "song_root_percent": 0.8731604765241766,
+        "song_root_quality_percent": 0.823405746320953,
+        "song_root_quality_seventh_percent": 0.747021723896286,
+        "duration_seconds": 285.4
+      },
+      "cnn_hsmm": {
+        "root_accuracy": 0.913104414856342,
+        "root_quality_accuracy": 0.8724597056762439,
+        "root_quality_seventh_accuracy": 0.8416257883672039,
+        "song_root_percent": 0.913104414856342,
+        "song_root_quality_percent": 0.8724597056762439,
+        "song_root_quality_seventh_percent": 0.8416257883672039,
+        "duration_seconds": 285.4
+      }
+    }
+  ],
+  "continuous_pipeline_macro_average": {
+    "cnn_only": {
+      "root_accuracy": 0.8070199583500296,
+      "root_quality_accuracy": 0.747623170020966,
+      "root_quality_seventh_accuracy": 0.6017647303087593,
+      "song_root_percent": 0.8070199583500295,
+      "song_root_quality_percent": 0.747623170020966,
+      "song_root_quality_seventh_percent": 0.6017647303087593
+    },
+    "cnn_hsmm": {
+      "root_accuracy": 0.8326580086697781,
+      "root_quality_accuracy": 0.7896790654525162,
+      "root_quality_seventh_accuracy": 0.6589914115280906,
+      "song_root_percent": 0.8326580086697781,
+      "song_root_quality_percent": 0.7896790654525162,
+      "song_root_quality_seventh_percent": 0.6589914115280907
+    }
+  },
+  "notes": {
+    "cnn_only_test_set": "15-song macro average on saved annotation-aligned CQT windows.",
+    "continuous_pipeline_comparison": "CNN-only and CNN+HSMM evaluated on identical continuous 0.2-second frames. Saved posteriors were generated by the full audio frontend and CNN."
+  }
 }

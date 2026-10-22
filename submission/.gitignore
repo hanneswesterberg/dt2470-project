@@ -4,3 +4,6 @@
 .venv-beatnet/
 __pycache__/
 *.py[cod]
+audio/RWC_P*.wav
+!audio/RWC_P003.wav
+!audio/RWC_P017.wav

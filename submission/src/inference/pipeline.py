@@ -36,7 +36,7 @@ class ChordTimeline:
         target = Path(path)
         target.parent.mkdir(parents=True, exist_ok=True)
         with target.open("w", encoding="utf-8", newline="") as stream:
-            writer = csv.writer(stream)
+            writer = csv.writer(stream, lineterminator="\n")
             writer.writerow(("start_seconds", "end_seconds", "chord"))
             writer.writerows(
                 (f"{start:.6f}", f"{end:.6f}", label)

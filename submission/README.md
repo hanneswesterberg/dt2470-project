@@ -1,7 +1,7 @@
 # Automatic chord recognition
 
 This folder is the complete DT2470 project submission. It contains the trained
-hierarchical CNN/HSMM model, the fixed 15-song RWC evaluation data, example
+hierarchical CNN/HSMM model, fixed 15-song CNN-only RWC evaluation data, example
 audio, generated results, and the presentation notebook.
 
 ## Quick start
@@ -15,9 +15,11 @@ python -m pip install -r requirements.txt
 jupyter lab project_presentation.ipynb
 ```
 
-Then use **Run All Cells**. The notebook reproduces the evaluation metrics and
-runs chord recognition on the selected song. Its final section contains a
-synchronized audio and chord player.
+Then use **Run All Cells**. The notebook reproduces the CNN-only evaluation,
+compares CNN-only with CNN+HSMM across all 15 continuous test songs, and runs
+chord recognition on the selected song. Compact saved CNN posteriors make the
+full HSMM evaluation reproducible without distributing all 15 WAV files. Its
+final section contains a synchronized audio player with rolling chord cards.
 
 If the notebook is already open in VS Code or Jupyter with another Python
 kernel, you can instead run only its first setup cell. That cell creates the

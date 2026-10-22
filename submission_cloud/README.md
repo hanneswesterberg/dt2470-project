@@ -1,41 +1,38 @@
-# Portable notebook presentation
+# Google Colab presentation
 
-Share `project_presentation.ipynb` on its own. No other project files from your
-computer are needed. Use a **Python 3.11 or newer** kernel:
+`project_presentation.ipynb` is the portable Google Colab counterpart of
+`submission/project_presentation.ipynb`. The local notebook remains the
+canonical executed presentation; the Colab notebook uses the same evaluation,
+plots, inference pipeline, and focused rolling-chord player.
 
-- **Jupyter Notebook/JupyterLab:** open the notebook and choose **Run All Cells**.
-- **VS Code:** open the notebook with Python/Jupyter support, select a Python
-  kernel, and choose **Run All**.
-- **Google Colab:** choose **Upload notebook**, select the notebook, then choose
-  **Runtime → Run all**.
+## Run in Colab
 
-The notebook downloads the public project archive (about 170 MB), verifies its
-SHA-256 checksum, and extracts the source, trained models, cached evaluation
-features, annotations, and example audio into the system temporary directory.
-The same setup works in all three environments without platform-specific
-branches. It prints the project folder's location and installs application
-dependencies into the selected Python kernel without creating a venv or
-registering another kernel. Internet access and permission to install packages
-are required. Installation may update packages in the selected environment.
-If installation requests a restart, restart the kernel/runtime and run all cells
-again.
+1. Upload `project_presentation.ipynb` to Google Colab.
+2. Choose **Runtime → Run all**.
+3. Allow the setup cell to download and install the submission.
 
-The presentation reproduces the 15-song evaluation, runs inference on the
-selected example, and embeds the synchronized audio/chord player inside the
-notebook. Change `song` to another name in the displayed song list to try the
-other bundled examples. CPU works; an available CUDA GPU can accelerate CNN
-inference. The interactive player requires trusted HTML/JavaScript output;
-trust the notebook/workspace in Jupyter or VS Code when prompted.
-The supplied features are for evaluation; training needs the full training
-feature dataset and is not run by this notebook.
+No Google Drive mount, project upload, trained-model upload, or virtual
+environment is required. The setup downloads the public `submission_test`
+branch into the temporary runtime and installs application dependencies into
+the active kernel. Internet access is therefore required.
 
-Downloads are pinned to public GitHub revision
-`cbbde3575a52a9183feab04ef06df567320f1a20` of
-[hanneswesterberg/dt2470-project](https://github.com/hanneswesterberg/dt2470-project).
-The notebook can be shared on its own; users do not need access to your Google
-Drive, a local checkout, or any uploaded model/data files. The source repository
-must remain publicly accessible. A fresh environment requires setup again.
-Temporary files may be removed by the host; save generated results elsewhere
-if you want to keep them.
+The notebook reproduces both reported evaluations:
 
-The original `submission/` folder is unchanged.
+- the CNN acoustic-model diagnostic on 15 annotation-aligned feature sets;
+- the fair CNN-only versus CNN+HSMM comparison on identical continuous
+  0.2-second frames for all 15 test songs.
+
+It then runs inference on the selected example and embeds the synchronized
+audio/chord player directly in the notebook. The generated player contains only
+audio controls, current/previous/next chords, and six rolling chord cards.
+Available ground truth is displayed beside the prediction.
+
+The project and generated results live in the runtime's temporary directory and
+may disappear when the runtime ends. CPU execution is supported; an available
+GPU can accelerate CNN inference. The public branch must contain the continuous
+posterior caches for the 15-song evaluation to run without downloading the full
+RWC audio collection.
+
+The original local notebook is preserved at
+`submission/project_presentation.ipynb` and continues to use its project-local
+`.venv` kernel plus an external browser window for the player.

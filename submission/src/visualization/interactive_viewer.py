@@ -115,7 +115,7 @@ def write_interactive_viewer(
     .agreement {{ width:9px; height:9px; border-radius:50%; background:var(--muted); }}
     .agreement.match {{ background:var(--accent2); box-shadow:0 0 12px var(--accent2); }}
     .agreement.mismatch {{ background:var(--danger); }}
-    .rolling-head,.map-label {{ display:flex; justify-content:space-between; align-items:center;
+    .rolling-head {{ display:flex; justify-content:space-between; align-items:center;
       color:var(--muted); margin:6px 2px 9px; font-size:13px; }}
     .rolling-head strong {{ color:var(--ink); font-size:15px; }}
     .rolling {{ display:grid; grid-template-columns:repeat(6,minmax(142px,1fr)); gap:10px;
@@ -133,27 +133,6 @@ def write_interactive_viewer(
     .roll-time,.roll-truth {{ display:block; color:var(--muted); font-size:11px; font-variant-numeric:tabular-nums; }}
     .roll-truth {{ margin-top:8px; padding-top:7px; border-top:1px solid var(--line); }}
     .roll-truth strong {{ color:var(--ink); font-size:13px; }}
-    .overview {{ position:relative; display:flex; height:28px; overflow:hidden;
-      border:1px solid var(--line); border-radius:12px; background:#11120f; cursor:pointer; }}
-    .segment {{ min-width:2px; height:100%; display:flex; align-items:center;
-      justify-content:center; overflow:hidden; border-right:1px solid #0d0e0c99;
-      font-size:11px; font-weight:700; color:#10110f; user-select:none; }}
-    .overview .segment span,.reference-overview .segment span {{ display:none; }}
-    .reference-overview {{ position:relative; display:flex; height:20px; overflow:hidden;
-      border:1px solid var(--line); border-radius:12px; background:#11120f; }}
-    .playhead {{ position:absolute; z-index:4; top:0; bottom:0; width:3px;
-      background:white; box-shadow:0 0 12px #fff; pointer-events:none; transform:translateX(-1px); }}
-    .events-head {{ display:flex; justify-content:space-between; margin:28px 2px 10px; }}
-    .events-head span:last-child {{ color:var(--muted); }}
-    .event-list {{ display:flex; gap:8px; overflow-x:auto; scroll-behavior:smooth;
-      padding:2px 2px 12px; scrollbar-color:#555 transparent; }}
-    button.event {{ flex:0 0 116px; border:1px solid var(--line); border-radius:10px;
-      background:#11120f; color:var(--ink); padding:13px 12px; text-align:left; cursor:pointer; }}
-    button.event:hover {{ border-color:#777; }} button.event.active {{ border-color:var(--accent);
-      background:#292515; box-shadow:inset 0 0 0 1px var(--accent); }}
-    .event .chord {{ display:block; font-size:22px; font-weight:750; }}
-    .event .stamp {{ color:var(--muted); font-size:12px; font-variant-numeric:tabular-nums; }}
-    .hint {{ color:var(--muted); margin:18px 2px 0; font-size:13px; }}
     @media (max-width:850px) {{ .rolling {{ grid-template-columns:repeat(6,155px); }} }}
     @media (max-width:650px) {{ header {{ align-items:start; flex-direction:column; }}
       .model {{ text-align:left; }} .now {{ grid-template-columns:1fr 2fr 1fr; min-height:150px; }}
@@ -175,25 +154,16 @@ def write_interactive_viewer(
     </div>
     <div class="rolling-head"><strong>Chord sequence</strong><span>Previous · now · upcoming</span></div>
     <div class="rolling" id="rolling"></div>
-    <div class="map-label"><span>Prediction · full song</span><span>Click to seek</span></div>
-    <div class="overview" id="overview"><div class="playhead" id="playhead"></div></div>
-    {('<div class="map-label"><span>Ground truth · full song</span></div><div class="reference-overview" id="reference-overview"></div>') if reference_events else ''}
-    <div class="events-head"><strong>Chord events</strong><span id="event-count"></span></div>
-    <div class="event-list" id="event-list"></div>
-    <p class="hint">Click any chord to seek. Space plays or pauses; ← and → jump five seconds.</p>
   </section>
 </main>
 <script>
 const events = {event_json};
 const referenceEvents = {reference_json};
 const audio = document.getElementById('audio');
-const overview = document.getElementById('overview');
-const list = document.getElementById('event-list');
 const current = document.getElementById('current');
 const previous = document.getElementById('previous');
 const next = document.getElementById('next');
 const clock = document.getElementById('time');
-const playhead = document.getElementById('playhead');
 const groundTruth = document.getElementById('ground-truth');
 const agreement = document.getElementById('agreement');
 const rolling = document.getElementById('rolling');
@@ -232,32 +202,6 @@ function renderRolling(activeIndex) {{
     rolling.appendChild(card);
   }});
 }}
-events.forEach((event, index) => {{
-  const segment = document.createElement('div'); segment.className = 'segment';
-  segment.style.width = `${{100 * (event.end-event.start) / duration}}%`;
-  segment.style.background = palette[rootIndex(event.chord)];
-  segment.title = `${{event.chord}} · ${{precise(event.start)}}–${{precise(event.end)}}`;
-  segment.innerHTML = `<span>${{event.chord}}</span>`;
-  segment.addEventListener('click', () => {{ audio.currentTime=event.start; audio.play(); }});
-  overview.insertBefore(segment, playhead);
-  const button = document.createElement('button'); button.className='event'; button.type='button';
-  button.innerHTML=`<span class="chord">${{event.chord}}</span><span class="stamp">${{precise(event.start)}}–${{precise(event.end)}}</span>`;
-  button.addEventListener('click', () => {{ audio.currentTime=event.start; audio.play(); }});
-  button.dataset.index=index; list.appendChild(button);
-}});
-if (referenceEvents.length) {{
-  const referenceOverview = document.getElementById('reference-overview');
-  referenceEvents.forEach(event => {{
-    const segment = document.createElement('div'); segment.className = 'segment';
-    segment.style.width = `${{100 * (event.end-event.start) / duration}}%`;
-    segment.style.background = palette[rootIndex(event.chord)];
-    segment.title = `${{event.chord}} · ${{precise(event.start)}}–${{precise(event.end)}}`;
-    segment.innerHTML = `<span>${{event.chord}}</span>`;
-    segment.addEventListener('click', () => {{ audio.currentTime=event.start; audio.play(); }});
-    referenceOverview.appendChild(segment);
-  }});
-}}
-document.getElementById('event-count').textContent=`${{events.length}} events`;
 let active=-1;
 function update() {{
   const time=audio.currentTime || 0;
@@ -273,19 +217,12 @@ function update() {{
   previous.textContent=index ? events[index-1].chord : '—';
   next.textContent=index+1<events.length ? events[index+1].chord : '—';
   clock.textContent=`${{format(time)}} / ${{format(audio.duration || duration)}}`;
-  playhead.style.left=`${{Math.min(100,100*time/duration)}}%`;
   if (index !== active) {{
-    if (active >= 0) list.children[active].classList.remove('active');
-    active=index; const item=list.children[index]; item.classList.add('active');
-    item.scrollIntoView({{behavior:'smooth',block:'nearest',inline:'center'}});
+    active=index;
     renderRolling(index);
   }}
 }}
 audio.addEventListener('timeupdate',update); audio.addEventListener('loadedmetadata',update);
-overview.addEventListener('click',event => {{
-  const box=overview.getBoundingClientRect(); audio.currentTime=(event.clientX-box.left)/box.width*duration;
-  audio.play();
-}});
 document.addEventListener('keydown', event => {{
   if (event.target.tagName === 'BUTTON') return;
   if (event.code === 'Space') {{ event.preventDefault(); audio.paused ? audio.play() : audio.pause(); }}

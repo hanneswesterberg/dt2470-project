@@ -34,7 +34,7 @@
     .agreement { width:9px; height:9px; border-radius:50%; background:var(--muted); }
     .agreement.match { background:var(--accent2); box-shadow:0 0 12px var(--accent2); }
     .agreement.mismatch { background:var(--danger); }
-    .rolling-head,.map-label { display:flex; justify-content:space-between; align-items:center;
+    .rolling-head { display:flex; justify-content:space-between; align-items:center;
       color:var(--muted); margin:6px 2px 9px; font-size:13px; }
     .rolling-head strong { color:var(--ink); font-size:15px; }
     .rolling { display:grid; grid-template-columns:repeat(6,minmax(142px,1fr)); gap:10px;
@@ -52,27 +52,6 @@
     .roll-time,.roll-truth { display:block; color:var(--muted); font-size:11px; font-variant-numeric:tabular-nums; }
     .roll-truth { margin-top:8px; padding-top:7px; border-top:1px solid var(--line); }
     .roll-truth strong { color:var(--ink); font-size:13px; }
-    .overview { position:relative; display:flex; height:28px; overflow:hidden;
-      border:1px solid var(--line); border-radius:12px; background:#11120f; cursor:pointer; }
-    .segment { min-width:2px; height:100%; display:flex; align-items:center;
-      justify-content:center; overflow:hidden; border-right:1px solid #0d0e0c99;
-      font-size:11px; font-weight:700; color:#10110f; user-select:none; }
-    .overview .segment span,.reference-overview .segment span { display:none; }
-    .reference-overview { position:relative; display:flex; height:20px; overflow:hidden;
-      border:1px solid var(--line); border-radius:12px; background:#11120f; }
-    .playhead { position:absolute; z-index:4; top:0; bottom:0; width:3px;
-      background:white; box-shadow:0 0 12px #fff; pointer-events:none; transform:translateX(-1px); }
-    .events-head { display:flex; justify-content:space-between; margin:28px 2px 10px; }
-    .events-head span:last-child { color:var(--muted); }
-    .event-list { display:flex; gap:8px; overflow-x:auto; scroll-behavior:smooth;
-      padding:2px 2px 12px; scrollbar-color:#555 transparent; }
-    button.event { flex:0 0 116px; border:1px solid var(--line); border-radius:10px;
-      background:#11120f; color:var(--ink); padding:13px 12px; text-align:left; cursor:pointer; }
-    button.event:hover { border-color:#777; } button.event.active { border-color:var(--accent);
-      background:#292515; box-shadow:inset 0 0 0 1px var(--accent); }
-    .event .chord { display:block; font-size:22px; font-weight:750; }
-    .event .stamp { color:var(--muted); font-size:12px; font-variant-numeric:tabular-nums; }
-    .hint { color:var(--muted); margin:18px 2px 0; font-size:13px; }
     @media (max-width:850px) { .rolling { grid-template-columns:repeat(6,155px); } }
     @media (max-width:650px) { header { align-items:start; flex-direction:column; }
       .model { text-align:left; } .now { grid-template-columns:1fr 2fr 1fr; min-height:150px; }
@@ -83,7 +62,7 @@
 <body>
 <main>
   <header><div><div class="eyebrow">Live chord transcription</div><h1>beatles_something</h1></div>
-    <div class="model">Model<br><strong>Hierarchical CNN + second-order HSMM</strong></div></header>
+    <div class="model">Model<br><strong>Hierarchical CNN + HSMM</strong></div></header>
   <section class="player">
     <audio id="audio" controls preload="metadata" src="media/beatles_something_browser.wav"></audio>
     <div class="now">
@@ -94,25 +73,16 @@
     </div>
     <div class="rolling-head"><strong>Chord sequence</strong><span>Previous · now · upcoming</span></div>
     <div class="rolling" id="rolling"></div>
-    <div class="map-label"><span>Prediction · full song</span><span>Click to seek</span></div>
-    <div class="overview" id="overview"><div class="playhead" id="playhead"></div></div>
-    
-    <div class="events-head"><strong>Chord events</strong><span id="event-count"></span></div>
-    <div class="event-list" id="event-list"></div>
-    <p class="hint">Click any chord to seek. Space plays or pauses; ← and → jump five seconds.</p>
   </section>
 </main>
 <script>
-const events = [{"start": 0.0, "end": 0.8, "chord": "D"}, {"start": 0.8, "end": 2.8000000000000003, "chord": "F"}, {"start": 2.8000000000000003, "end": 3.6, "chord": "Eb"}, {"start": 3.6, "end": 4.6000000000000005, "chord": "G"}, {"start": 4.6000000000000005, "end": 8.6, "chord": "C"}, {"start": 8.6, "end": 9.600000000000001, "chord": "Cmaj7"}, {"start": 9.600000000000001, "end": 12.4, "chord": "C"}, {"start": 12.4, "end": 14.200000000000001, "chord": "C7"}, {"start": 14.200000000000001, "end": 15.8, "chord": "C"}, {"start": 15.8, "end": 19.6, "chord": "F"}, {"start": 19.6, "end": 23.200000000000003, "chord": "D"}, {"start": 23.200000000000003, "end": 24.200000000000003, "chord": "G"}, {"start": 24.200000000000003, "end": 25.0, "chord": "Am"}, {"start": 25.0, "end": 26.8, "chord": "G"}, {"start": 26.8, "end": 30.400000000000002, "chord": "Am"}, {"start": 30.400000000000002, "end": 32.2, "chord": "Am7"}, {"start": 32.2, "end": 34.0, "chord": "D"}, {"start": 34.0, "end": 36.0, "chord": "F"}, {"start": 36.0, "end": 36.800000000000004, "chord": "Eb"}, {"start": 36.800000000000004, "end": 37.800000000000004, "chord": "G"}, {"start": 37.800000000000004, "end": 41.800000000000004, "chord": "C"}, {"start": 41.800000000000004, "end": 43.0, "chord": "Cmaj7"}, {"start": 43.0, "end": 45.6, "chord": "C"}, {"start": 45.6, "end": 46.6, "chord": "C7"}, {"start": 46.6, "end": 48.2, "chord": "Cm"}, {"start": 48.2, "end": 48.800000000000004, "chord": "C"}, {"start": 48.800000000000004, "end": 51.800000000000004, "chord": "F"}, {"start": 51.800000000000004, "end": 52.400000000000006, "chord": "C"}, {"start": 52.400000000000006, "end": 56.0, "chord": "D"}, {"start": 56.0, "end": 57.2, "chord": "G"}, {"start": 57.2, "end": 58.2, "chord": "Am7"}, {"start": 58.2, "end": 59.800000000000004, "chord": "G"}, {"start": 59.800000000000004, "end": 61.800000000000004, "chord": "Am"}, {"start": 61.800000000000004, "end": 62.800000000000004, "chord": "F"}, {"start": 62.800000000000004, "end": 65.0, "chord": "Am7"}, {"start": 65.0, "end": 66.8, "chord": "D7"}, {"start": 66.8, "end": 68.8, "chord": "F"}, {"start": 68.8, "end": 69.8, "chord": "Eb"}, {"start": 69.8, "end": 70.60000000000001, "chord": "G"}, {"start": 70.60000000000001, "end": 76.2, "chord": "A"}, {"start": 76.2, "end": 77.80000000000001, "chord": "Dbm"}, {"start": 77.80000000000001, "end": 79.0, "chord": "Gbm7"}, {"start": 79.0, "end": 81.0, "chord": "A"}, {"start": 81.0, "end": 82.80000000000001, "chord": "D"}, {"start": 82.80000000000001, "end": 84.60000000000001, "chord": "G"}, {"start": 84.60000000000001, "end": 85.80000000000001, "chord": "Amaj7"}, {"start": 85.80000000000001, "end": 86.60000000000001, "chord": "G"}, {"start": 86.60000000000001, "end": 87.4, "chord": "Gbm7"}, {"start": 87.4, "end": 88.0, "chord": "E"}, {"start": 88.0, "end": 89.60000000000001, "chord": "A"}, {"start": 89.60000000000001, "end": 91.2, "chord": "Dbm"}, {"start": 91.2, "end": 92.4, "chord": "Gbm"}, {"start": 92.4, "end": 94.4, "chord": "Dbm"}, {"start": 94.4, "end": 96.4, "chord": "D"}, {"start": 96.4, "end": 98.0, "chord": "G"}, {"start": 98.0, "end": 99.80000000000001, "chord": "C"}, {"start": 99.80000000000001, "end": 100.60000000000001, "chord": "G"}, {"start": 100.60000000000001, "end": 105.2, "chord": "C"}, {"start": 105.2, "end": 107.0, "chord": "Cmaj7"}, {"start": 107.0, "end": 112.2, "chord": "C"}, {"start": 112.2, "end": 115.0, "chord": "F"}, {"start": 115.0, "end": 115.80000000000001, "chord": "C"}, {"start": 115.80000000000001, "end": 119.2, "chord": "D7"}, {"start": 119.2, "end": 120.4, "chord": "G"}, {"start": 120.4, "end": 121.4, "chord": "Am7"}, {"start": 121.4, "end": 123.0, "chord": "G"}, {"start": 123.0, "end": 124.2, "chord": "F"}, {"start": 124.2, "end": 125.4, "chord": "Am"}, {"start": 125.4, "end": 126.2, "chord": "Em"}, {"start": 126.2, "end": 128.20000000000002, "chord": "Am7"}, {"start": 128.20000000000002, "end": 129.8, "chord": "D7"}, {"start": 129.8, "end": 131.8, "chord": "F"}, {"start": 131.8, "end": 132.8, "chord": "Eb"}, {"start": 132.8, "end": 133.6, "chord": "G"}, {"start": 133.6, "end": 137.8, "chord": "C"}, {"start": 137.8, "end": 139.6, "chord": "Cmaj7"}, {"start": 139.6, "end": 141.20000000000002, "chord": "C"}, {"start": 141.20000000000002, "end": 144.6, "chord": "C7"}, {"start": 144.6, "end": 147.8, "chord": "F"}, {"start": 147.8, "end": 151.6, "chord": "D"}, {"start": 151.6, "end": 152.8, "chord": "G"}, {"start": 152.8, "end": 153.60000000000002, "chord": "Am7"}, {"start": 153.60000000000002, "end": 155.20000000000002, "chord": "G7"}, {"start": 155.20000000000002, "end": 158.0, "chord": "Am"}, {"start": 158.0, "end": 160.60000000000002, "chord": "C"}, {"start": 160.60000000000002, "end": 161.4, "chord": "Dmaj7"}, {"start": 161.4, "end": 162.4, "chord": "Gbm7"}, {"start": 162.4, "end": 164.4, "chord": "F"}, {"start": 164.4, "end": 165.20000000000002, "chord": "Eb"}, {"start": 165.20000000000002, "end": 166.20000000000002, "chord": "Bm"}, {"start": 166.20000000000002, "end": 169.4, "chord": "A"}, {"start": 169.4, "end": 171.4, "chord": "F"}, {"start": 171.4, "end": 172.4, "chord": "Eb"}, {"start": 172.4, "end": 173.4, "chord": "G"}, {"start": 173.4, "end": 177.8, "chord": "C"}, {"start": 177.8, "end": 179.8, "chord": "Cm"}, {"start": 179.8, "end": 181.4, "chord": "D"}];
+const events = [{"start": 0.0, "end": 0.8, "chord": "D"}, {"start": 0.8, "end": 2.8, "chord": "F"}, {"start": 2.8, "end": 3.6, "chord": "Eb"}, {"start": 3.6, "end": 4.6, "chord": "G"}, {"start": 4.6, "end": 8.6, "chord": "C"}, {"start": 8.6, "end": 9.6, "chord": "Cmaj7"}, {"start": 9.6, "end": 12.4, "chord": "C"}, {"start": 12.4, "end": 14.2, "chord": "C7"}, {"start": 14.2, "end": 15.8, "chord": "C"}, {"start": 15.8, "end": 19.6, "chord": "F"}, {"start": 19.6, "end": 23.2, "chord": "D"}, {"start": 23.2, "end": 24.2, "chord": "G"}, {"start": 24.2, "end": 25.0, "chord": "Am"}, {"start": 25.0, "end": 26.8, "chord": "G"}, {"start": 26.8, "end": 30.4, "chord": "Am"}, {"start": 30.4, "end": 32.2, "chord": "Am7"}, {"start": 32.2, "end": 34.0, "chord": "D"}, {"start": 34.0, "end": 36.0, "chord": "F"}, {"start": 36.0, "end": 36.8, "chord": "Eb"}, {"start": 36.8, "end": 37.8, "chord": "G"}, {"start": 37.8, "end": 41.8, "chord": "C"}, {"start": 41.8, "end": 43.0, "chord": "Cmaj7"}, {"start": 43.0, "end": 45.6, "chord": "C"}, {"start": 45.6, "end": 46.6, "chord": "C7"}, {"start": 46.6, "end": 48.2, "chord": "Cm"}, {"start": 48.2, "end": 48.8, "chord": "C"}, {"start": 48.8, "end": 51.8, "chord": "F"}, {"start": 51.8, "end": 52.4, "chord": "C"}, {"start": 52.4, "end": 56.0, "chord": "D"}, {"start": 56.0, "end": 57.2, "chord": "G"}, {"start": 57.2, "end": 58.2, "chord": "Am7"}, {"start": 58.2, "end": 59.8, "chord": "G"}, {"start": 59.8, "end": 61.8, "chord": "Am"}, {"start": 61.8, "end": 62.8, "chord": "F"}, {"start": 62.8, "end": 65.0, "chord": "Am7"}, {"start": 65.0, "end": 66.8, "chord": "D7"}, {"start": 66.8, "end": 68.8, "chord": "F"}, {"start": 68.8, "end": 69.8, "chord": "Eb"}, {"start": 69.8, "end": 70.6, "chord": "G"}, {"start": 70.6, "end": 76.2, "chord": "A"}, {"start": 76.2, "end": 77.8, "chord": "Dbm"}, {"start": 77.8, "end": 79.0, "chord": "Gbm7"}, {"start": 79.0, "end": 81.0, "chord": "A"}, {"start": 81.0, "end": 82.8, "chord": "D"}, {"start": 82.8, "end": 84.6, "chord": "G"}, {"start": 84.6, "end": 85.8, "chord": "Amaj7"}, {"start": 85.8, "end": 86.6, "chord": "G"}, {"start": 86.6, "end": 87.4, "chord": "Gbm7"}, {"start": 87.4, "end": 88.0, "chord": "E"}, {"start": 88.0, "end": 89.6, "chord": "A"}, {"start": 89.6, "end": 91.2, "chord": "Dbm"}, {"start": 91.2, "end": 92.4, "chord": "Gbm"}, {"start": 92.4, "end": 94.4, "chord": "Dbm"}, {"start": 94.4, "end": 96.4, "chord": "D"}, {"start": 96.4, "end": 98.0, "chord": "G"}, {"start": 98.0, "end": 99.8, "chord": "C"}, {"start": 99.8, "end": 100.6, "chord": "G"}, {"start": 100.6, "end": 105.2, "chord": "C"}, {"start": 105.2, "end": 107.0, "chord": "Cmaj7"}, {"start": 107.0, "end": 112.2, "chord": "C"}, {"start": 112.2, "end": 115.0, "chord": "F"}, {"start": 115.0, "end": 115.8, "chord": "C"}, {"start": 115.8, "end": 119.2, "chord": "D7"}, {"start": 119.2, "end": 120.4, "chord": "G"}, {"start": 120.4, "end": 121.4, "chord": "Am7"}, {"start": 121.4, "end": 123.0, "chord": "G"}, {"start": 123.0, "end": 124.2, "chord": "F"}, {"start": 124.2, "end": 125.4, "chord": "Am"}, {"start": 125.4, "end": 126.2, "chord": "Em"}, {"start": 126.2, "end": 128.2, "chord": "Am7"}, {"start": 128.2, "end": 129.8, "chord": "D7"}, {"start": 129.8, "end": 131.8, "chord": "F"}, {"start": 131.8, "end": 132.8, "chord": "Eb"}, {"start": 132.8, "end": 133.6, "chord": "G"}, {"start": 133.6, "end": 137.8, "chord": "C"}, {"start": 137.8, "end": 139.6, "chord": "Cmaj7"}, {"start": 139.6, "end": 141.2, "chord": "C"}, {"start": 141.2, "end": 144.6, "chord": "C7"}, {"start": 144.6, "end": 147.8, "chord": "F"}, {"start": 147.8, "end": 151.6, "chord": "D"}, {"start": 151.6, "end": 152.8, "chord": "G"}, {"start": 152.8, "end": 153.6, "chord": "Am7"}, {"start": 153.6, "end": 155.2, "chord": "G7"}, {"start": 155.2, "end": 158.0, "chord": "Am"}, {"start": 158.0, "end": 160.6, "chord": "C"}, {"start": 160.6, "end": 161.4, "chord": "Dmaj7"}, {"start": 161.4, "end": 162.4, "chord": "Gbm7"}, {"start": 162.4, "end": 164.4, "chord": "F"}, {"start": 164.4, "end": 165.2, "chord": "Eb"}, {"start": 165.2, "end": 166.2, "chord": "Bm"}, {"start": 166.2, "end": 169.4, "chord": "A"}, {"start": 169.4, "end": 171.4, "chord": "F"}, {"start": 171.4, "end": 172.4, "chord": "Eb"}, {"start": 172.4, "end": 173.4, "chord": "G"}, {"start": 173.4, "end": 177.8, "chord": "C"}, {"start": 177.8, "end": 179.8, "chord": "Cm"}, {"start": 179.8, "end": 181.4, "chord": "D"}];
 const referenceEvents = [];
 const audio = document.getElementById('audio');
-const overview = document.getElementById('overview');
-const list = document.getElementById('event-list');
 const current = document.getElementById('current');
 const previous = document.getElementById('previous');
 const next = document.getElementById('next');
 const clock = document.getElementById('time');
-const playhead = document.getElementById('playhead');
 const groundTruth = document.getElementById('ground-truth');
 const agreement = document.getElementById('agreement');
 const rolling = document.getElementById('rolling');
@@ -151,32 +121,6 @@ function renderRolling(activeIndex) {
     rolling.appendChild(card);
   });
 }
-events.forEach((event, index) => {
-  const segment = document.createElement('div'); segment.className = 'segment';
-  segment.style.width = `${100 * (event.end-event.start) / duration}%`;
-  segment.style.background = palette[rootIndex(event.chord)];
-  segment.title = `${event.chord} · ${precise(event.start)}–${precise(event.end)}`;
-  segment.innerHTML = `<span>${event.chord}</span>`;
-  segment.addEventListener('click', () => { audio.currentTime=event.start; audio.play(); });
-  overview.insertBefore(segment, playhead);
-  const button = document.createElement('button'); button.className='event'; button.type='button';
-  button.innerHTML=`<span class="chord">${event.chord}</span><span class="stamp">${precise(event.start)}–${precise(event.end)}</span>`;
-  button.addEventListener('click', () => { audio.currentTime=event.start; audio.play(); });
-  button.dataset.index=index; list.appendChild(button);
-});
-if (referenceEvents.length) {
-  const referenceOverview = document.getElementById('reference-overview');
-  referenceEvents.forEach(event => {
-    const segment = document.createElement('div'); segment.className = 'segment';
-    segment.style.width = `${100 * (event.end-event.start) / duration}%`;
-    segment.style.background = palette[rootIndex(event.chord)];
-    segment.title = `${event.chord} · ${precise(event.start)}–${precise(event.end)}`;
-    segment.innerHTML = `<span>${event.chord}</span>`;
-    segment.addEventListener('click', () => { audio.currentTime=event.start; audio.play(); });
-    referenceOverview.appendChild(segment);
-  });
-}
-document.getElementById('event-count').textContent=`${events.length} events`;
 let active=-1;
 function update() {
   const time=audio.currentTime || 0;
@@ -192,19 +136,12 @@ function update() {
   previous.textContent=index ? events[index-1].chord : '—';
   next.textContent=index+1<events.length ? events[index+1].chord : '—';
   clock.textContent=`${format(time)} / ${format(audio.duration || duration)}`;
-  playhead.style.left=`${Math.min(100,100*time/duration)}%`;
   if (index !== active) {
-    if (active >= 0) list.children[active].classList.remove('active');
-    active=index; const item=list.children[index]; item.classList.add('active');
-    item.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+    active=index;
     renderRolling(index);
   }
 }
 audio.addEventListener('timeupdate',update); audio.addEventListener('loadedmetadata',update);
-overview.addEventListener('click',event => {
-  const box=overview.getBoundingClientRect(); audio.currentTime=(event.clientX-box.left)/box.width*duration;
-  audio.play();
-});
 document.addEventListener('keydown', event => {
   if (event.target.tagName === 'BUTTON') return;
   if (event.code === 'Space') { event.preventDefault(); audio.paused ? audio.play() : audio.pause(); }
